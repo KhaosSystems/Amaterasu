@@ -46,6 +46,7 @@ namespace AmaterasuDemo
 		struct NodeInfo
 		{
 			INode* Data;
+			std::string Title;
 			ImVec2 Position;
 			ImVec2 Size;
 			bool Active = false;
@@ -56,6 +57,7 @@ namespace AmaterasuDemo
 		{
 			NodeInfo nodeInfo;
 			nodeInfo.Data = new Node<NodeInputDefinition<float, float>, NoteOutputDefinition<float>>();
+			nodeInfo.Title = "Add";
 			nodeInfo.Position = ImVec2(20.0f, 20.0f);
 			nodeInfo.Size = ImVec2(250.0f, 100.0f);
 
@@ -67,42 +69,51 @@ namespace AmaterasuDemo
 
 		void RenderNode(ImDrawList* drawList, ImVec2 offset, const NodeInfo& node)
 		{
-			drawList->AddRectFilled(offset + node.Position, offset + node.Position + node.Size, node.Active ? IM_COL32(90, 20, 20, 255) : IM_COL32(60, 20, 20, 255));
+			drawList->AddRectFilled(offset + node.Position, offset + node.Position + node.Size, IM_COL32(51, 51, 51, 255), 10.0f, ImDrawCornerFlags_All);
+			drawList->AddRectFilled(offset + node.Position + ImVec2(2.0f, 2.0f), offset + node.Position + node.Size - ImVec2(2.0f, 2.0f), IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
+			drawList->AddRectFilled(offset + node.Position + ImVec2(0.0f, 13.0f), offset + node.Position + ImVec2(0.0f, 14.0f) + (node.Size * ImVec2(1.0f, 0.0f)), IM_COL32(51, 51, 51, 255));
+			drawList->AddRectFilled(offset + node.Position + (node.Size * ImVec2(0.0f, 1.0f)) + ImVec2(0.0f, -14.0f), offset + node.Position + (node.Size * ImVec2(1.0f, 1.0f)) + ImVec2(0.0f, -13.0f), IM_COL32(51, 51, 51, 255));
+			drawList->AddText(offset + node.Position, IM_COL32(194, 194, 194, 194), node.Title.c_str());
 		}
 
-		ImVec2 lastMousePos = ImVec2(0.0f, 0.0f);
-		ImVec2 scrolling = ImVec2(0.0f, 0.0f);
 		NodeInfo* draggingNode = nullptr;
-
+		ImVec2 scrolling = ImVec2(0.0f, 0.0f);
+		
+		ImVec2 lastMousePosition = ImVec2(0.0f, 0.0f);
+		bool lastMouseDown = false;
+		bool lastMouseClicked = false;
+		bool lastMouseReleased = false;
+		ImVec2 mousePosition = ImVec2(0.0f, 0.0f);
 		bool mouseDown = false;
 		bool mouseClicked = false;
 		bool mouseReleased = false;
 
 		void ImGuiRender()
 		{
-			bool lastMouseDown = mouseDown;
-			bool lastMouseClicked = mouseClicked;
-			bool lastMouseReleased = mouseReleased;
+			ImGuiIO& io = ImGui::GetIO();
 
+			lastMousePosition = mousePosition;
+			lastMouseDown = mouseDown;
+			lastMouseClicked = mouseClicked;
+			lastMouseReleased = mouseReleased;
 			mouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
 			mouseClicked = ImGui::IsMouseDown(ImGuiMouseButton_Left) && !lastMouseClicked;
 			mouseReleased = !ImGui::IsMouseDown(ImGuiMouseButton_Left) && lastMouseDown;
+			mousePosition = io.MousePos;
 
 			ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
 			ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
 			ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
 
-			// Draw border and background color
-			ImGuiIO& io = ImGui::GetIO();
+			const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y); // Lock scrolled origin
+
 			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(20, 20, 20, 255));
+			drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(26, 26, 26, 255));
 			drawList->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
 
-			// This will catch our interactions
 			ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 			const bool isHovered = ImGui::IsItemHovered();
 			const bool isActive = ImGui::IsItemActive();
-			const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y); // Lock scrolled origin
 
 			for (NodeInfo& node : m_Nodes)
 			{
@@ -110,11 +121,10 @@ namespace AmaterasuDemo
 				draggingNode = mouseClicked ? &node : (mouseReleased ? nullptr : draggingNode);
 			}
 
-			std::cout << reinterpret_cast<void*>(draggingNode) << '\n';
-
 			if (draggingNode)
 			{
-				draggingNode->Position += ImGui::GetMousePos() - lastMousePos;
+				// Getting the clicked position and subtracting that from the current mouse position might result in smoother dragging.
+				draggingNode->Position += ImGui::GetMousePos() - lastMousePosition;
 			}
 
 			drawList->PushClipRect(canvas_p0, canvas_p1, true);
@@ -123,8 +133,6 @@ namespace AmaterasuDemo
 				RenderNode(drawList, origin, node);
 			}
 			drawList->PopClipRect();
-
-			lastMousePos = ImGui::GetMousePos();
 		}
 		void Terminate() {}
 
