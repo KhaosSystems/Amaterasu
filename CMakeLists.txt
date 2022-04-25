@@ -27,7 +27,7 @@ add_library(Amaterasu STATIC "${AMATERASU_HEADERS}" "${AMATERASU_SOURCES}")
 set_property(TARGET Amaterasu PROPERTY CXX_STANDARD 20)
 
 target_include_directories(Amaterasu PUBLIC "${CMAKE_SOURCE_DIR}/Amaterasu/Source")
-target_link_libraries(Amaterasu glfw imgui)
+target_link_libraries(Amaterasu glfw imgui opengl32)
 
 # Khaos Systems, AmaterasuDemo
 project(AmaterasuDemo)
