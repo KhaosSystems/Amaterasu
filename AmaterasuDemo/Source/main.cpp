@@ -55,32 +55,47 @@ namespace AmaterasuDemo
 	public:
 		NodeGraph2()
 		{
-			NodeInfo nodeInfo;
-			nodeInfo.Data = new Node<NodeInputDefinition<float, float>, NoteOutputDefinition<float>>();
-			nodeInfo.Title = "Add";
-			nodeInfo.Position = ImVec2(20.0f, 20.0f);
-			nodeInfo.Size = ImVec2(250.0f, 100.0f);
+			NodeInfo nodeInfo1;
+			nodeInfo1.Data = new Node<NodeInputDefinition<float, float>, NoteOutputDefinition<float>>();
+			nodeInfo1.Title = "Add";
+			nodeInfo1.Position = ImVec2(20.0f, 20.0f);
+			nodeInfo1.Size = ImVec2(250.0f, 84.0f);
+			m_Nodes.push_back(nodeInfo1);
 
-			m_Nodes.push_back(nodeInfo);
+			NodeInfo nodeInfo2;
+			nodeInfo2.Data = new Node<NodeInputDefinition<float, float>, NoteOutputDefinition<float>>();
+			nodeInfo2.Title = "Add";
+			nodeInfo2.Position = ImVec2(170.0f, 140.0f);
+			nodeInfo2.Size = ImVec2(250.0f, 84.0f);
+			m_Nodes.push_back(nodeInfo2);
 		}
 
 		void Initialize() {}
 
-
 		void RenderNode(ImDrawList* drawList, ImVec2 offset, const NodeInfo& node)
 		{
 			ImGuiIO& io = ImGui::GetIO();
+
+			// 13 + 18 + 22 + 18 + 13
 
 			drawList->AddText(io.FontDefault, 20.0f, offset + node.Position + ImVec2(0.0f, -34.0f), IM_COL32(194, 194, 194, 194), node.Title.c_str());
 			drawList->AddRectFilled(offset + node.Position, offset + node.Position + node.Size, IM_COL32(51, 51, 51, 255), 10.0f, ImDrawCornerFlags_All);
 			drawList->AddRectFilled(offset + node.Position + ImVec2(2.0f, 2.0f), offset + node.Position + node.Size - ImVec2(2.0f, 2.0f), IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
 			drawList->AddRectFilled(offset + node.Position + ImVec2(0.0f, 13.0f), offset + node.Position + ImVec2(0.0f, 14.0f) + (node.Size * ImVec2(1.0f, 0.0f)), IM_COL32(51, 51, 51, 255));
 			drawList->AddRectFilled(offset + node.Position + (node.Size * ImVec2(0.0f, 1.0f)) + ImVec2(0.0f, -14.0f), offset + node.Position + (node.Size * ImVec2(1.0f, 1.0f)) + ImVec2(0.0f, -13.0f), IM_COL32(51, 51, 51, 255));
+
+			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 18.0f + 13.0f), 8, IM_COL32(51, 51, 51, 255));
+			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 18.0f + 13.0f), 6, IM_COL32(0, 194, 255, 255));
+			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 40.0f + 13.0f), 8, IM_COL32(51, 51, 51, 255));
+			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 40.0f + 13.0f), 6, IM_COL32(0, 194, 255, 255));
+
+			drawList->AddCircleFilled(offset + node.Position + (node.Size * ImVec2(1.0f, 0.0f)) + ImVec2(0.0f, 18.0f + 13.0f), 8, IM_COL32(51, 51, 51, 255));
+			drawList->AddCircleFilled(offset + node.Position + (node.Size * ImVec2(1.0f, 0.0f)) + ImVec2(0.0f, 18.0f + 13.0f), 6, IM_COL32(0, 194, 255, 255));
 		}
 
 		NodeInfo* draggingNode = nullptr;
 		ImVec2 scrolling = ImVec2(0.0f, 0.0f);
-		
+
 		ImVec2 lastMousePosition = ImVec2(0.0f, 0.0f);
 		bool lastMouseDown = false;
 		bool lastMouseClicked = false;
@@ -92,49 +107,81 @@ namespace AmaterasuDemo
 
 		void ImGuiRender()
 		{
-			ImGuiIO& io = ImGui::GetIO();
-
-			lastMousePosition = mousePosition;
-			lastMouseDown = mouseDown;
-			lastMouseClicked = mouseClicked;
-			lastMouseReleased = mouseReleased;
-			mouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-			mouseClicked = ImGui::IsMouseDown(ImGuiMouseButton_Left) && !lastMouseClicked;
-			mouseReleased = !ImGui::IsMouseDown(ImGuiMouseButton_Left) && lastMouseDown;
-			mousePosition = io.MousePos;
-
-			ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-			ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
-			ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
-
-			const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y); // Lock scrolled origin
-
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(26, 26, 26, 255));
-			drawList->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
-
-			ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-			const bool isHovered = ImGui::IsItemHovered();
-			const bool isActive = ImGui::IsItemActive();
-
-			for (NodeInfo& node : m_Nodes)
+			// Begin dockspace
 			{
-				node.Hovered = io.MousePos.x >= origin.x + node.Position.x && io.MousePos.x <= origin.x + node.Position.x + node.Size.x && io.MousePos.y >= origin.y + node.Position.y && io.MousePos.y <= origin.y + node.Position.y + node.Size.y;
-				draggingNode = mouseClicked ? &node : (mouseReleased ? nullptr : draggingNode);
+				ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+				ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+				window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+				window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImGui::SetNextWindowPos(viewport->Pos);
+				ImGui::SetNextWindowSize(viewport->Size);
+				ImGui::SetNextWindowViewport(viewport->ID);
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+				ImGui::Begin("DockSpace", (bool*)0, window_flags);
+				ImGui::PopStyleVar(3);
+
+				ImGui::DockSpace(ImGui::GetID("MyDockSpace"), ImVec2(0.0f, 0.0f), dockspace_flags);
 			}
 
-			if (draggingNode)
 			{
-				// Getting the clicked position and subtracting that from the current mouse position might result in smoother dragging.
-				draggingNode->Position += ImGui::GetMousePos() - lastMousePosition;
+				ImGuiIO& io = ImGui::GetIO();
+
+				ImGui::Begin("Node Graph");
+				{
+					lastMousePosition = mousePosition;
+					lastMouseDown = mouseDown;
+					lastMouseClicked = mouseClicked;
+					lastMouseReleased = mouseReleased;
+					mouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+					mouseClicked = ImGui::IsMouseDown(ImGuiMouseButton_Left) && !lastMouseClicked;
+					mouseReleased = !ImGui::IsMouseDown(ImGuiMouseButton_Left) && lastMouseDown;
+					mousePosition = io.MousePos;
+
+					ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
+					ImVec2 canvas_sz = ImVec2(ImGui::GetContentRegionAvail().x, std::max(ImGui::GetContentRegionAvail().y, 50.0f));
+					ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+
+					const ImVec2 origin((canvas_p0.x + scrolling.x, 50.0f), std::max(canvas_p0.y + scrolling.y, 50.0f)); // Lock scrolled origin
+
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+					drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(26, 26, 26, 255));
+					drawList->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
+
+					ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+					const bool isHovered = ImGui::IsItemHovered();
+					const bool isActive = ImGui::IsItemActive();
+
+					for (NodeInfo& node : m_Nodes)
+					{
+						node.Hovered = io.MousePos.x >= origin.x + node.Position.x && io.MousePos.x <= origin.x + node.Position.x + node.Size.x && io.MousePos.y >= origin.y + node.Position.y && io.MousePos.y <= origin.y + node.Position.y + node.Size.y;
+						draggingNode = mouseClicked && node.Hovered ? &node : (mouseReleased ? nullptr : draggingNode);
+					}
+
+					if (draggingNode)
+					{
+						// Getting the clicked position and subtracting that from the current mouse position might result in smoother dragging.
+						draggingNode->Position += ImGui::GetMousePos() - lastMousePosition;
+					}
+
+					drawList->PushClipRect(canvas_p0, canvas_p1, true);
+					for (const NodeInfo& node : m_Nodes)
+					{
+						RenderNode(drawList, origin, node);
+					}
+					drawList->PopClipRect();
+				}
+				ImGui::End(); // Node Graph
 			}
 
-			drawList->PushClipRect(canvas_p0, canvas_p1, true);
-			for (const NodeInfo& node : m_Nodes)
 			{
-				RenderNode(drawList, origin, node);
+				ImGui::End(); // Dockspace
 			}
-			drawList->PopClipRect();
 		}
 		void Terminate() {}
 
