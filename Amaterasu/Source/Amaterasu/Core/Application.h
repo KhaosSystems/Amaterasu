@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace Amaterasu
@@ -12,6 +13,9 @@ namespace Amaterasu
         Application(const std::string& name);
         virtual ~Application();
  
+    private:
+        void InitializeImGui();
+
     private:
         const std::string m_Name;
 
