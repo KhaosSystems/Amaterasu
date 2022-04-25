@@ -21,6 +21,14 @@ namespace Amaterasu
 	Application::Application(const std::string& name)
 		: m_Window(nullptr)
 	{
+	}
+
+	Application::~Application()
+	{
+	}
+
+	void Application::Run()
+	{
 		if (!glfwInit())
 			return;
 
@@ -43,20 +51,24 @@ namespace Amaterasu
 		InitializeImGui();
 
 		// Initialize glad
-		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
+		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		while (!glfwWindowShouldClose(m_Window))
 		{
-			glfwSwapBuffers(m_Window);
 			glfwPollEvents();
-
-			glClear(GL_COLOR_BUFFER_BIT);
 
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
-
+			ImGuiRender();
+			ImGui::EndFrame();
 			ImGui::Render();
+
+			int display_w, display_h;
+			glfwGetFramebufferSize(m_Window, &display_w, &display_h);
+			glViewport(0, 0, display_w, display_h);
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 			ImGuiIO& io = ImGui::GetIO();
@@ -67,12 +79,14 @@ namespace Amaterasu
 				ImGui::RenderPlatformWindowsDefault();
 				glfwMakeContextCurrent(backup_current_context);
 			}
+
+			glfwSwapBuffers(m_Window);
 		}
 
 		glfwTerminate();
 	}
 
-	Application::~Application()
+	void Application::ImGuiRender()
 	{
 	}
 

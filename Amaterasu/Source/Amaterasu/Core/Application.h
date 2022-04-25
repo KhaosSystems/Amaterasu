@@ -13,6 +13,10 @@ namespace Amaterasu
         Application(const std::string& name);
         virtual ~Application();
  
+        void Run();
+
+        virtual void ImGuiRender();
+
     private:
         void InitializeImGui();
 

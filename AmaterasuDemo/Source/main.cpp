@@ -1,20 +1,35 @@
 #include "Amaterasu/Core/Application.h"
 
+#include <iostream>
+#include <imgui.h>
+
 namespace AmaterasuDemo
 {
-    class Application : public Amaterasu::Application
+    class AmaterasuDemoApplication : public Amaterasu::Application
     {
     public:
-        Application();
+        AmaterasuDemoApplication();
+
+        void ImGuiRender() override;
     };
 
-    Application::Application()
+    AmaterasuDemoApplication::AmaterasuDemoApplication()
         : Amaterasu::Application("Amaterasu Demo")
     {
+        std::cout << "called2" << std::endl;
+    }
+
+    void AmaterasuDemoApplication::ImGuiRender()
+    {
+        Application::ImGuiRender();
+
+        std::cout << "called" << std::endl;
+        ImGui::ShowDemoWindow();
     }
 }
 
 int main(int argc, char* argv[])
 {
-    AmaterasuDemo::Application application = AmaterasuDemo::Application();
+    AmaterasuDemo::AmaterasuDemoApplication application = AmaterasuDemo::AmaterasuDemoApplication();
+    application.Run();
 }
