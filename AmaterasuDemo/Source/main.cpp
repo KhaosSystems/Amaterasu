@@ -69,11 +69,13 @@ namespace AmaterasuDemo
 
 		void RenderNode(ImDrawList* drawList, ImVec2 offset, const NodeInfo& node)
 		{
+			ImGuiIO& io = ImGui::GetIO();
+
+			drawList->AddText(io.FontDefault, 20.0f, offset + node.Position + ImVec2(0.0f, -34.0f), IM_COL32(194, 194, 194, 194), node.Title.c_str());
 			drawList->AddRectFilled(offset + node.Position, offset + node.Position + node.Size, IM_COL32(51, 51, 51, 255), 10.0f, ImDrawCornerFlags_All);
 			drawList->AddRectFilled(offset + node.Position + ImVec2(2.0f, 2.0f), offset + node.Position + node.Size - ImVec2(2.0f, 2.0f), IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
 			drawList->AddRectFilled(offset + node.Position + ImVec2(0.0f, 13.0f), offset + node.Position + ImVec2(0.0f, 14.0f) + (node.Size * ImVec2(1.0f, 0.0f)), IM_COL32(51, 51, 51, 255));
 			drawList->AddRectFilled(offset + node.Position + (node.Size * ImVec2(0.0f, 1.0f)) + ImVec2(0.0f, -14.0f), offset + node.Position + (node.Size * ImVec2(1.0f, 1.0f)) + ImVec2(0.0f, -13.0f), IM_COL32(51, 51, 51, 255));
-			drawList->AddText(offset + node.Position, IM_COL32(194, 194, 194, 194), node.Title.c_str());
 		}
 
 		NodeInfo* draggingNode = nullptr;
