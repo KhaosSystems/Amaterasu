@@ -12,32 +12,102 @@
 
 #include <memory>
 #include <vector>
+#include <string>
+#include <unordered_map>
+#include <typeindex>
 
 namespace ed = ax::NodeEditor;
 
 namespace AmaterasuDemo
 {
-	// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r0.pdf
-	template <class T, template<class...> class Primary> struct is_specialization_of : std::false_type {};
-	template <template<class...> class Primary, class... Args> struct is_specialization_of<Primary<Args...>, Primary> : std::true_type {};
-	template <class T, template<class...> class Primary> inline constexpr bool is_specialization_of_v = is_specialization_of<T, Primary>::value;
 
-	template<typename... Ts> class NodeInputDefinition {};
-	template<typename... Ts> class NoteOutputDefinition {};
+	class INodeParameter
+	{
+	public:
+		virtual void GetData(void* data) = 0;
+		virtual void SetData(void* data) = 0;
+		virtual std::type_index GetDataType() const = 0;
+		virtual uint32_t GetDataSize() const = 0;
+	};
 
-	template <class T> concept IsNodeInputDefinition = is_specialization_of_v<T, NodeInputDefinition>;
-	template <class T> concept IsNoteOutputDefinition = is_specialization_of_v<T, NoteOutputDefinition>;
+	template<typename T>
+	class NodeParameter : public INodeParameter
+	{
+	public:
+		virtual void GetData(void* data) override { memcpy(data, &m_Data, sizeof(T)); }
+		virtual void SetData(void* data) override { memcpy(&m_Data, data, sizeof(T)); }
+		virtual std::type_index GetDataType() const override { return std::type_index(typeid(T)); }
+		virtual uint32_t GetDataSize() const override { return sizeof(T); }
+	
+	private:
+		T m_Data;
+	};
 
 	class INode
 	{
+	public:
+		virtual void Execute() = 0;
+
+		template<typename T>
+		void RegisterInput(const std::string key)
+		{
+			assert(!m_Inputs.contains(key));
+
+			m_Inputs[key] = new NodeParameter<T>();
+		}
+
+		template<typename T>
+		void RegisterOutput(const std::string key)
+		{
+			assert(!m_Output.contains(key));
+
+			m_Output[key] = new NodeParameter<T>();
+		}
+
+		template<typename T>
+		void SetOutput(const std::string key, T data)
+		{
+			assert(m_Output.contains(key));
+			assert(m_Output[key]->GetDataType() == std::type_index(typeid(T)));
+
+			m_Output[key]->SetData(&data);
+		}
+
+		template<typename T>
+		T GetInput(const std::string key)
+		{
+			assert(m_Inputs.contains(key));
+			assert(m_Inputs[key]->GetDataType() == std::type_index(typeid(T)));
+
+			T data;
+			m_Inputs[key]->GetData(&data);
+
+			return data;
+		}
+
+		std::unordered_map<std::string, INodeParameter*>& GetInputsDictionary() { return m_Inputs; }
+		std::unordered_map<std::string, INodeParameter*>& GetOutputsDictionary() { return m_Output; }
+
+
+	protected:
+		std::unordered_map<std::string, INodeParameter*> m_Inputs;
+		std::unordered_map<std::string, INodeParameter*> m_Output;
 	};
 
-	template<IsNodeInputDefinition T1, IsNoteOutputDefinition T2>
-	class Node : public INode
+	class KSAddFloatNode : public INode
 	{
 	public:
-		typedef T1 InputDefinition;
-		typedef T2 OutputDefinition;
+		KSAddFloatNode()
+		{
+			RegisterInput<float>("A");
+			RegisterInput<float>("B");
+			RegisterOutput<float>("C");
+		}
+
+		virtual void Execute() override
+		{
+			SetOutput<float>("C", GetInput<float>("A") + GetInput<float>("B"));
+		}
 	};
 
 	class NodeGraph2
@@ -52,20 +122,22 @@ namespace AmaterasuDemo
 			bool Active = false;
 			bool Hovered = false;
 		};
+	
 	public:
 		NodeGraph2()
 		{
+			
 			NodeInfo nodeInfo1;
-			nodeInfo1.Data = new Node<NodeInputDefinition<float, float>, NoteOutputDefinition<float>>();
+			nodeInfo1.Data = new KSAddFloatNode();
 			nodeInfo1.Title = "Add";
-			nodeInfo1.Position = ImVec2(20.0f, 20.0f);
+			nodeInfo1.Position = ImVec2(200.0f, 220.0f);
 			nodeInfo1.Size = ImVec2(250.0f, 84.0f);
 			m_Nodes.push_back(nodeInfo1);
 
 			NodeInfo nodeInfo2;
-			nodeInfo2.Data = new Node<NodeInputDefinition<float, float>, NoteOutputDefinition<float>>();
+			nodeInfo2.Data = new KSAddFloatNode();
 			nodeInfo2.Title = "Add";
-			nodeInfo2.Position = ImVec2(170.0f, 140.0f);
+			nodeInfo2.Position = ImVec2(570.0f, 320.0f);
 			nodeInfo2.Size = ImVec2(250.0f, 84.0f);
 			m_Nodes.push_back(nodeInfo2);
 		}
@@ -76,21 +148,44 @@ namespace AmaterasuDemo
 		{
 			ImGuiIO& io = ImGui::GetIO();
 
-			// 13 + 18 + 22 + 18 + 13
+			std::unordered_map<std::string, INodeParameter*>& inputs = node.Data->GetInputsDictionary();
+			std::unordered_map<std::string, INodeParameter*>& outputs = node.Data->GetOutputsDictionary();
 
-			drawList->AddText(io.FontDefault, 20.0f, offset + node.Position + ImVec2(0.0f, -34.0f), IM_COL32(194, 194, 194, 194), node.Title.c_str());
-			drawList->AddRectFilled(offset + node.Position, offset + node.Position + node.Size, IM_COL32(51, 51, 51, 255), 10.0f, ImDrawCornerFlags_All);
-			drawList->AddRectFilled(offset + node.Position + ImVec2(2.0f, 2.0f), offset + node.Position + node.Size - ImVec2(2.0f, 2.0f), IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
-			drawList->AddRectFilled(offset + node.Position + ImVec2(0.0f, 13.0f), offset + node.Position + ImVec2(0.0f, 14.0f) + (node.Size * ImVec2(1.0f, 0.0f)), IM_COL32(51, 51, 51, 255));
-			drawList->AddRectFilled(offset + node.Position + (node.Size * ImVec2(0.0f, 1.0f)) + ImVec2(0.0f, -14.0f), offset + node.Position + (node.Size * ImVec2(1.0f, 1.0f)) + ImVec2(0.0f, -13.0f), IM_COL32(51, 51, 51, 255));
+			const uint32_t parameterVerticalMargin = 18.0f;
+			const uint32_t parameterVerticalSpaceing = 22.0f;
+			const uint32_t parameterVerticalSize = (parameterVerticalMargin * 2) + std::max(std::max(inputs.size() - 1.0f, outputs.size() - 1.0f), 0.0f) * parameterVerticalSpaceing;
 
-			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 18.0f + 13.0f), 8, IM_COL32(51, 51, 51, 255));
-			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 18.0f + 13.0f), 6, IM_COL32(0, 194, 255, 255));
-			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 40.0f + 13.0f), 8, IM_COL32(51, 51, 51, 255));
-			drawList->AddCircleFilled(offset + node.Position + ImVec2(0.0f, 40.0f + 13.0f), 6, IM_COL32(0, 194, 255, 255));
+			const uint32_t nodeHeaderDividerThickness = 1.0f;
 
-			drawList->AddCircleFilled(offset + node.Position + (node.Size * ImVec2(1.0f, 0.0f)) + ImVec2(0.0f, 18.0f + 13.0f), 8, IM_COL32(51, 51, 51, 255));
-			drawList->AddCircleFilled(offset + node.Position + (node.Size * ImVec2(1.0f, 0.0f)) + ImVec2(0.0f, 18.0f + 13.0f), 6, IM_COL32(0, 194, 255, 255));
+			const uint32_t nodeHeaderVerticalMargin = 13.0f;
+			const uint32_t nodeFooterVerticalMargin = 13.0f;
+			const ImVec2 nodeBorderSize = ImVec2(2.0f, 2.0f);
+			const ImVec2 nodePosition = offset + node.Position;
+			const ImVec2 nodeSize = ImVec2(250.0f, nodeHeaderVerticalMargin + parameterVerticalSize + nodeFooterVerticalMargin);
+
+			// Draw base
+			drawList->AddText(io.FontDefault, 20.0f, nodePosition + ImVec2(0.0f, -34.0f), IM_COL32(194, 194, 194, 194), node.Title.c_str());
+			drawList->AddRectFilled(nodePosition, nodePosition + nodeSize, IM_COL32(51, 51, 51, 255), 10.0f, ImDrawCornerFlags_All);
+			drawList->AddRectFilled(nodePosition + nodeBorderSize, nodePosition + nodeSize - nodeBorderSize, IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
+			drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin), nodePosition + ImVec2(node.Size.x, nodeHeaderVerticalMargin + nodeHeaderDividerThickness), IM_COL32(51, 51, 51, 255));
+			drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeSize.y - nodeHeaderVerticalMargin - nodeHeaderDividerThickness), nodePosition + ImVec2(nodeSize.x, nodeSize.y - nodeHeaderVerticalMargin), IM_COL32(51, 51, 51, 255));
+
+			// Draw parameters
+			ImVec2 cursor = ImVec2(0.0f, nodeHeaderVerticalMargin + parameterVerticalMargin);
+			for (auto const& [key, nodeParameter] : inputs)
+			{
+				drawList->AddCircleFilled(nodePosition + cursor, 8, IM_COL32(51, 51, 51, 255));
+				drawList->AddCircleFilled(nodePosition + cursor, 6, IM_COL32(0, 194, 255, 255));
+				cursor.y += parameterVerticalSpaceing;
+			}
+
+			cursor = ImVec2(nodeSize.x, nodeHeaderVerticalMargin + parameterVerticalMargin);
+			for (auto const& [key, nodeParameter] : outputs)
+			{
+				drawList->AddCircleFilled(nodePosition + cursor, 8, IM_COL32(51, 51, 51, 255));
+				drawList->AddCircleFilled(nodePosition + cursor, 6, IM_COL32(0, 194, 255, 255));
+				cursor.y += parameterVerticalSpaceing;
+			}
 		}
 
 		NodeInfo* draggingNode = nullptr;
@@ -168,6 +263,12 @@ namespace AmaterasuDemo
 						// Getting the clicked position and subtracting that from the current mouse position might result in smoother dragging.
 						draggingNode->Position += ImGui::GetMousePos() - lastMousePosition;
 					}
+
+					ImVec2 start = origin + m_Nodes[0].Position + (m_Nodes[0].Size * ImVec2(1.0f, 0.0f)) + ImVec2(0.0f, 13.0f + 18.0f);
+					ImVec2 end = origin + m_Nodes[1].Position + ImVec2(0.0f, 13.0f + 18.0f);
+					drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 6);
+					drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(0, 194, 255, 255), 2);
+
 
 					drawList->PushClipRect(canvas_p0, canvas_p1, true);
 					for (const NodeInfo& node : m_Nodes)

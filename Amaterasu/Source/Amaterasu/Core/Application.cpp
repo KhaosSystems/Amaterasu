@@ -105,7 +105,7 @@ namespace Amaterasu
 
 		// Load fonts
 		// TODO: Don't use absolute paths...
-		//io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Dev/Kronos/KronosEditor/Assets/Fonts/Consolas/CONSOLA.TTF", 14.0f);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Dev/Kronos/KronosEditor/Assets/Fonts/Consolas/CONSOLA.TTF", 14.0f);
 
 		// Configure style variables
 		ImGuiStyle& style = ImGui::GetStyle();
