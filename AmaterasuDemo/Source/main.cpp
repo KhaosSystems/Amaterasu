@@ -110,6 +110,24 @@ namespace AmaterasuDemo
 		}
 	};
 
+	class KSAnotherNode : public INode
+	{
+	public:
+		KSAnotherNode()
+		{
+			RegisterInput<float>("A");
+			RegisterInput<float>("B");
+			RegisterOutput<float>("C");
+			RegisterOutput<float>("D");
+			RegisterOutput<int>("E");
+			RegisterOutput<std::string>("F");
+		}
+
+		virtual void Execute() override
+		{
+		}
+	};
+
 	class NodeGraph2
 	{
 	public:
@@ -126,48 +144,55 @@ namespace AmaterasuDemo
 	public:
 		NodeGraph2()
 		{
-			
 			NodeInfo nodeInfo1;
 			nodeInfo1.Data = new KSAddFloatNode();
 			nodeInfo1.Title = "Add";
 			nodeInfo1.Position = ImVec2(200.0f, 220.0f);
-			nodeInfo1.Size = ImVec2(250.0f, 84.0f);
 			m_Nodes.push_back(nodeInfo1);
 
 			NodeInfo nodeInfo2;
-			nodeInfo2.Data = new KSAddFloatNode();
+			nodeInfo2.Data = new KSAnotherNode();
 			nodeInfo2.Title = "Add";
 			nodeInfo2.Position = ImVec2(570.0f, 320.0f);
-			nodeInfo2.Size = ImVec2(250.0f, 84.0f);
 			m_Nodes.push_back(nodeInfo2);
 		}
 
 		void Initialize() {}
 
-		void RenderNode(ImDrawList* drawList, ImVec2 offset, const NodeInfo& node)
+		ImU32 GetColorByType(const std::type_index type)
+		{
+			if (std::type_index(typeid(float)) == type) { return IM_COL32(0, 194, 255, 255); }
+			else if (std::type_index(typeid(int)) == type) { return IM_COL32(0, 255, 100, 255); }
+			else if (std::type_index(typeid(std::string)) == type) { return IM_COL32(154, 0, 255, 255); }
+			else { return IM_COL32(150, 150, 150, 255); }
+		}
+
+		void RenderNode(ImDrawList* drawList, ImVec2 offset, NodeInfo& node)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 
 			std::unordered_map<std::string, INodeParameter*>& inputs = node.Data->GetInputsDictionary();
 			std::unordered_map<std::string, INodeParameter*>& outputs = node.Data->GetOutputsDictionary();
 
-			const uint32_t parameterVerticalMargin = 18.0f;
-			const uint32_t parameterVerticalSpaceing = 22.0f;
-			const uint32_t parameterVerticalSize = (parameterVerticalMargin * 2) + std::max(std::max(inputs.size() - 1.0f, outputs.size() - 1.0f), 0.0f) * parameterVerticalSpaceing;
+			const float parameterVerticalMargin = 18.0f;
+			const float parameterVerticalSpaceing = 22.0f;
+			const float parameterVerticalSize = (parameterVerticalMargin * 2) + std::max(std::max(inputs.size() - 1.0f, outputs.size() - 1.0f), 0.0f) * parameterVerticalSpaceing;
 
-			const uint32_t nodeHeaderDividerThickness = 1.0f;
+			const float nodeHeaderDividerThickness = 1.0f;
 
-			const uint32_t nodeHeaderVerticalMargin = 13.0f;
-			const uint32_t nodeFooterVerticalMargin = 13.0f;
+			const float nodeHeaderVerticalMargin = 13.0f;
+			const float nodeFooterVerticalMargin = 13.0f;
 			const ImVec2 nodeBorderSize = ImVec2(2.0f, 2.0f);
 			const ImVec2 nodePosition = offset + node.Position;
 			const ImVec2 nodeSize = ImVec2(250.0f, nodeHeaderVerticalMargin + parameterVerticalSize + nodeFooterVerticalMargin);
+
+			node.Size = nodeSize; // TODO: Move
 
 			// Draw base
 			drawList->AddText(io.FontDefault, 20.0f, nodePosition + ImVec2(0.0f, -34.0f), IM_COL32(194, 194, 194, 194), node.Title.c_str());
 			drawList->AddRectFilled(nodePosition, nodePosition + nodeSize, IM_COL32(51, 51, 51, 255), 10.0f, ImDrawCornerFlags_All);
 			drawList->AddRectFilled(nodePosition + nodeBorderSize, nodePosition + nodeSize - nodeBorderSize, IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
-			drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin), nodePosition + ImVec2(node.Size.x, nodeHeaderVerticalMargin + nodeHeaderDividerThickness), IM_COL32(51, 51, 51, 255));
+			drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin), nodePosition + ImVec2(nodeSize.x, nodeHeaderVerticalMargin + nodeHeaderDividerThickness), IM_COL32(51, 51, 51, 255));
 			drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeSize.y - nodeHeaderVerticalMargin - nodeHeaderDividerThickness), nodePosition + ImVec2(nodeSize.x, nodeSize.y - nodeHeaderVerticalMargin), IM_COL32(51, 51, 51, 255));
 
 			// Draw parameters
@@ -175,7 +200,7 @@ namespace AmaterasuDemo
 			for (auto const& [key, nodeParameter] : inputs)
 			{
 				drawList->AddCircleFilled(nodePosition + cursor, 8, IM_COL32(51, 51, 51, 255));
-				drawList->AddCircleFilled(nodePosition + cursor, 6, IM_COL32(0, 194, 255, 255));
+				drawList->AddCircleFilled(nodePosition + cursor, 6, GetColorByType(nodeParameter->GetDataType()));
 				cursor.y += parameterVerticalSpaceing;
 			}
 
@@ -183,7 +208,7 @@ namespace AmaterasuDemo
 			for (auto const& [key, nodeParameter] : outputs)
 			{
 				drawList->AddCircleFilled(nodePosition + cursor, 8, IM_COL32(51, 51, 51, 255));
-				drawList->AddCircleFilled(nodePosition + cursor, 6, IM_COL32(0, 194, 255, 255));
+				drawList->AddCircleFilled(nodePosition + cursor, 6, GetColorByType(nodeParameter->GetDataType()));
 				cursor.y += parameterVerticalSpaceing;
 			}
 		}
@@ -271,7 +296,7 @@ namespace AmaterasuDemo
 
 
 					drawList->PushClipRect(canvas_p0, canvas_p1, true);
-					for (const NodeInfo& node : m_Nodes)
+					for (NodeInfo& node : m_Nodes)
 					{
 						RenderNode(drawList, origin, node);
 					}
