@@ -46,13 +46,18 @@ namespace AmaterasuDemo
 		return point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y;
 	}
 
+	std::deque<SceneNode*>& SceneNode::GetChildren()
+	{
+		return m_Children;
+	}
+
 	void SceneNode::Render()
 	{
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 		drawList->AddRectFilled(GetWorldPosition(), GetWorldPosition() + ImVec2(100.0f, 100.0f), IM_COL32(51, 51, 51, 255));
 	}
-	
+
 	Node::Node(NodeGraph* parent)
 	{
 		m_Parent = parent;
@@ -82,19 +87,24 @@ namespace AmaterasuDemo
 		drawList->AddRectFilled(nodePosition + nodeBorderSize, nodePosition + nodeSize - nodeBorderSize, IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
 		drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin), nodePosition + ImVec2(nodeSize.x, nodeHeaderVerticalMargin + nodeHeaderDividerThickness), IM_COL32(51, 51, 51, 255));
 		drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeSize.y - nodeHeaderVerticalMargin - nodeHeaderDividerThickness), nodePosition + ImVec2(nodeSize.x, nodeSize.y - nodeHeaderVerticalMargin), IM_COL32(51, 51, 51, 255));
-		
-		for (auto const& [key, nodeParameter] : m_Inputs) { nodeParameter->Render(); }
-		for (auto const& [key, nodeParameter] : m_Outputs) { nodeParameter->Render(); }
+
+		for (SceneNode* child : m_Children) { child->Render(); }
 	}
 
 	bool Node::IsOverlapping(ImVec2 point)
 	{
-		return SceneNode::IsOverlapping(point);
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+		ImVec2 p1 = GetWorldPosition() + ImVec2(-8.0f, -8.0f);
+		ImVec2 p2 = GetWorldPosition() + ImVec2(250.0f, 200.0f) + ImVec2(8.0f, 8.0f);
+		drawList->AddRectFilled(p1, p2, IM_COL32(51, 251, 51, 255));
+		return point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y;;
 	}
 
 	NodeGraph::NodeGraph()
-		: m_DragItem(nullptr)
+		: m_StartNodeParameter(nullptr), m_DragItem(nullptr)
 	{
+		m_Children.push_back(new KSAddFloatNode(this));
 		m_Children.push_back(new KSAddFloatNode(this));
 	}
 
@@ -126,7 +136,7 @@ namespace AmaterasuDemo
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(26, 26, 26, 255));
 		drawList->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
-		
+
 		ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
 		drawList->PushClipRect(canvas_p0, canvas_p1, true);
@@ -139,10 +149,23 @@ namespace AmaterasuDemo
 		// Input
 		for (SceneNode* child : m_Children)
 		{
-			if (m_MouseClicked)
+			if (m_MouseClicked && child->IsOverlapping(m_MousePosition))
 			{
-				if (child->IsOverlapping(m_MousePosition))
+				for (SceneNode* childChild : child->GetChildren())
 				{
+					if (m_StartNodeParameter) continue;
+					auto* nodeParameter = dynamic_cast<INodeParameter*>(childChild);
+					if (nodeParameter && nodeParameter->IsOverlapping(m_MousePosition))
+					{
+						std::cout << "Start connection" << std::endl;
+						m_StartNodeParameter = nodeParameter;
+					}
+				}
+
+				if (!m_StartNodeParameter)
+				{
+					std::cout << "This" << std::endl;
+					m_DragItemOffset = child->GetWorldPosition() - m_MousePosition;
 					m_DragItem = child;
 				}
 			}
@@ -150,17 +173,46 @@ namespace AmaterasuDemo
 
 		if (m_MouseReleased)
 		{
+			for (SceneNode* child : m_Children)
+			{
+				if (!m_StartNodeParameter) break;
+
+				if (child->IsOverlapping(m_MousePosition))
+				{
+					for (SceneNode* childChild : child->GetChildren())
+					{
+						if (!m_StartNodeParameter) break;
+
+						auto* nodeParameter = dynamic_cast<INodeParameter*>(childChild);
+						if (nodeParameter && nodeParameter->IsOverlapping(m_MousePosition))
+						{
+							m_StartNodeParameter->Connect(nodeParameter);
+							m_StartNodeParameter = nullptr;
+						}
+					}
+				}
+
+			}
 			m_DragItem = nullptr;
+			m_StartNodeParameter = nullptr;
+		}
+
+		if (m_StartNodeParameter)
+		{
+			ImVec2 start = m_StartNodeParameter->GetWorldPosition();
+			ImVec2 end = m_MousePosition;
+			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 6);
+			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(0, 194, 255, 255), 2);
 		}
 
 		if (m_DragItem)
 		{
-			m_DragItem->SetWorldPosition(m_MousePosition);
+			m_DragItem->SetWorldPosition(m_MousePosition + m_DragItemOffset);
 		}
 
 		ImGui::End(); // Node Graph
 	}
-	
+
 	void NodeGraph::Terminate()
 	{
 	}
@@ -174,8 +226,8 @@ namespace AmaterasuDemo
 		RegisterInput<float>("B");
 		RegisterOutput<float>("C");
 	}
-	
-	void KSAddFloatNode::Execute() 
+
+	void KSAddFloatNode::Execute()
 	{
 		SetOutput<float>("C", GetInput<float>("A") + GetInput<float>("B"));
 	}
