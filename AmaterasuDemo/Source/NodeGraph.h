@@ -66,6 +66,8 @@ namespace AmaterasuDemo
         virtual std::type_index GetDataType() const = 0;
         virtual uint32_t GetDataSize() const = 0;
         virtual void Connect(INodeParameter* other) = 0;
+        virtual void SetDisplayName(const std::string& newDisplayName) = 0;
+        virtual const std::string& GetDisplayName() const = 0;
     };
 
     template<typename T>
@@ -79,20 +81,24 @@ namespace AmaterasuDemo
 
 		void Render() override
         {
+            ImGuiIO& io = ImGui::GetIO();
             ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+            ImVec2 parameterPosition = GetWorldPosition();
 
             for (INodeParameter* connection : m_Connections)
             {
-                ImVec2 start = GetWorldPosition();
+                ImVec2 start = parameterPosition;
                 ImVec2 end = connection->GetWorldPosition();
                 drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 6);
                 drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(0, 194, 255, 255), 2);
             }
 
-            ImVec2 position = GetWorldPosition();
 
-            drawList->AddCircleFilled(position, 8, IM_COL32(51, 51, 51, 255));
-            drawList->AddCircleFilled(position, 6, IM_COL32(0, 194, 255, 255));
+            drawList->AddCircleFilled(parameterPosition, 8, IM_COL32(51, 51, 51, 255));
+            drawList->AddCircleFilled(parameterPosition, 6, IM_COL32(0, 194, 255, 255));
+
+            drawList->AddText(io.FontDefault, 12.0f, parameterPosition + ImVec2(16.0f, -6.0f), IM_COL32(194, 194, 194, 194), GetDisplayName().c_str());
         }
 
 		bool IsOverlapping(ImVec2 point) override
@@ -111,14 +117,18 @@ namespace AmaterasuDemo
         virtual std::type_index GetDataType() const override { return std::type_index(typeid(T)); }
         virtual uint32_t GetDataSize() const override { return sizeof(T); }
         virtual void Connect(INodeParameter* other) override { m_Connections.push_back(other); }
+        virtual void  SetDisplayName(const std::string& newDisplayName) override { m_DisplayName = newDisplayName; }
+        virtual const std::string& GetDisplayName() const override { return m_DisplayName; }
 
     private:
+        std::string m_DisplayName;
         std::vector<INodeParameter*> m_Connections;
         T m_Data;
     };
 
     class INode : public SceneNode
     {
+    
     };
 
 	class Node : public SceneNode 
@@ -137,6 +147,7 @@ namespace AmaterasuDemo
             assert(!m_Inputs.contains(key));
 
             NodeParameter<T>* input = new NodeParameter<T>(this);
+            input->SetDisplayName(key);
             input->SetRelativePosition(ImVec2(0.0f, 13.0f + 18.0f + (22.0f * m_Inputs.size())));
             m_Inputs[key] = input;
             m_Children.push_back(input);
@@ -177,7 +188,11 @@ namespace AmaterasuDemo
         std::unordered_map<std::string, INodeParameter*>& GetInputsDictionary() { return m_Inputs; }
         std::unordered_map<std::string, INodeParameter*>& GetOutputsDictionary() { return m_Outputs; }
 
+        virtual void SetDisplayName(const std::string& newDisplayName) { m_DisplayName = newDisplayName; }
+        virtual const std::string& GetDisplayName() const { return m_DisplayName; }
+
     protected:
+        std::string m_DisplayName;
         std::unordered_map<std::string, INodeParameter*> m_Inputs;
         std::unordered_map<std::string, INodeParameter*> m_Outputs;
 	};

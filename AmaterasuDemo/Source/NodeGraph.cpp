@@ -82,13 +82,18 @@ namespace AmaterasuDemo
 		const ImVec2 nodeSize = ImVec2(250.0f, nodeHeaderVerticalMargin + parameterVerticalSize + nodeFooterVerticalMargin);
 
 		// Draw base
-		drawList->AddText(io.FontDefault, 20.0f, nodePosition + ImVec2(0.0f, -34.0f), IM_COL32(194, 194, 194, 194), "test");
+		float displatNameFontSize = 20.0f;
+		ImVec2 displayNameSize = ImGui::CalcTextSize(GetDisplayName().c_str()) * (displatNameFontSize / io.FontDefault->FontSize);
+		ImVec2 displayNamePosition = nodePosition + ImVec2((nodeSize.x - displayNameSize.x) * 0.5f, -displayNameSize.y * 1.5);
+		drawList->AddText(io.FontDefault, displatNameFontSize, displayNamePosition, IM_COL32(194, 194, 194, 194), GetDisplayName().c_str());
 		drawList->AddRectFilled(nodePosition, nodePosition + nodeSize, IM_COL32(51, 51, 51, 255), 10.0f, ImDrawCornerFlags_All);
 		drawList->AddRectFilled(nodePosition + nodeBorderSize, nodePosition + nodeSize - nodeBorderSize, IM_COL32(59, 59, 59, 255), 10.0f, ImDrawCornerFlags_All);
 		drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin), nodePosition + ImVec2(nodeSize.x, nodeHeaderVerticalMargin + nodeHeaderDividerThickness), IM_COL32(51, 51, 51, 255));
 		drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeSize.y - nodeHeaderVerticalMargin - nodeHeaderDividerThickness), nodePosition + ImVec2(nodeSize.x, nodeSize.y - nodeHeaderVerticalMargin), IM_COL32(51, 51, 51, 255));
 
-		for (SceneNode* child : m_Children) { child->Render(); }
+		for (SceneNode* child : m_Children) {
+			child->Render();
+		}
 	}
 
 	bool Node::IsOverlapping(ImVec2 point)
@@ -221,6 +226,8 @@ namespace AmaterasuDemo
 		: Node(parent)
 	{
 		m_Parent = parent;
+
+		SetDisplayName("Add");
 
 		RegisterInput<float>("A");
 		RegisterInput<float>("B");
