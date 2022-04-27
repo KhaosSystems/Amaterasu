@@ -15,10 +15,13 @@
 #include <string>
 #include <unordered_map>
 #include <typeindex>
+#include <iostream>
 
 namespace ed = ax::NodeEditor;
 
 #include "NodeGraph.h"
+
+#include "GUI.h"
 
 namespace AmaterasuDemo
 {
@@ -32,6 +35,8 @@ namespace AmaterasuDemo
 
 	private:
 		NodeGraph m_NodeGraph;
+
+		Workspace m_Workspace1;
 	};
 
 	AmaterasuDemoApplication::AmaterasuDemoApplication()
@@ -46,17 +51,28 @@ namespace AmaterasuDemo
 		m_NodeGraph.Terminate();
 	}
 
+	ImVec2 windowMoveOffset = ImVec2(0.0f, 0.0f);
+	bool isDraggingWindow = false;
 	void AmaterasuDemoApplication::ImGuiRender()
 	{
 		Application::ImGuiRender();
 
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuiContext& g = *GImGui;
+
         // Begin dockspace
         {
             ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-            ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+			
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+			window_flags |= ImGuiWindowFlags_NoTitleBar;
+			window_flags |= ImGuiWindowFlags_NoTitleBar;
+			window_flags |= ImGuiWindowFlags_NoCollapse;
+			window_flags |= ImGuiWindowFlags_NoResize;
+			window_flags |= ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoDocking;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+			window_flags |= ImGuiWindowFlags_NoNavFocus;
 
             ImGuiViewport* viewport = ImGui::GetMainViewport();
             ImGui::SetNextWindowPos(viewport->Pos);
@@ -71,14 +87,45 @@ namespace AmaterasuDemo
 
             ImGui::DockSpace(ImGui::GetID("MyDockSpace"), ImVec2(0.0f, 0.0f), dockspace_flags);
         }
+	
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		
+		int windowX, windowY = 0;
+		glfwGetWindowPos(GetWindow(), &windowX, &windowY);
+		ImVec2 windowPos = ImVec2(windowX, windowY);
+		ImVec2 p1 = ImVec2(300.0f, 0.0f) + windowPos;
+		ImVec2 p2 = ImVec2(600.0f, 60.0f) + windowPos;
+		ImVec2 point = io.MousePos;
+		drawList->AddRectFilled(p1, p2, IM_COL32(255, 100, 100, 255));
+
+		if (ImGui::IsMouseClicked(0))
+		{
+			if (point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y)
+			{
+				windowMoveOffset = windowPos - point;
+				isDraggingWindow = true;
+			}
+		}
+
+		if (ImGui::IsMouseReleased(0))
+		{
+			isDraggingWindow = false;
+		}
+
+		if (isDraggingWindow)
+		{
+			glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
+		}
+
+		m_Workspace1.Render();
 
 		m_NodeGraph.Render();
+
+		ImGui::ShowDemoWindow();
 
         {
             ImGui::End(); // Dockspace
         }
-
-		ImGui::ShowDemoWindow();
 	}
 }
 

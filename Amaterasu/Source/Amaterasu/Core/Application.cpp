@@ -38,6 +38,7 @@ namespace Amaterasu
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
 		m_Window = glfwCreateWindow(1280, 720, m_Name.c_str(), nullptr, nullptr);
 		if (!m_Window)

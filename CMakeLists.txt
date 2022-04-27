@@ -25,6 +25,12 @@ add_library(imgui "${IMGUI_HEADERS}" "${IMGUI_SOURCES}" "${IMGUI_DIRECTORY}/back
 target_include_directories(imgui PUBLIC "${IMGUI_DIRECTORY}" "${IMGUI_DIRECTORY}/examples")
 target_link_libraries(imgui glfw)
 
+# RapidXml
+project(RapidXml)
+add_library(RapidXml INTERFACE) 
+set(RAPIDXML_DIRECTORY "${CMAKE_SOURCE_DIR}/AmaterasuDemo/Vendor/RapidXml")
+target_include_directories(RapidXml INTERFACE "${RAPIDXML_DIRECTORY}")
+
 # Khaos Systems, Amaterasu
 project(Amaterasu)
 
@@ -47,4 +53,4 @@ add_executable(AmaterasuDemo "${AMATERASU_DEMO_HEADERS}" "${AMATERASU_DEMO_SOURC
 set_property(TARGET AmaterasuDemo PROPERTY CXX_STANDARD 20)
 
 target_include_directories(AmaterasuDemo PUBLIC "${CMAKE_SOURCE_DIR}/AmaterasuDemo/Source")
-target_link_libraries(AmaterasuDemo Amaterasu)
+target_link_libraries(AmaterasuDemo Amaterasu RapidXml)

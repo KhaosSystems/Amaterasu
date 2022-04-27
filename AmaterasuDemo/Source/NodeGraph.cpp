@@ -98,11 +98,10 @@ namespace AmaterasuDemo
 
 	bool Node::IsOverlapping(ImVec2 point)
 	{
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-
 		ImVec2 p1 = GetWorldPosition() + ImVec2(-8.0f, -8.0f);
 		ImVec2 p2 = GetWorldPosition() + ImVec2(250.0f, 200.0f) + ImVec2(8.0f, 8.0f);
-		drawList->AddRectFilled(p1, p2, IM_COL32(51, 251, 51, 255));
+		//ImDrawList* drawList = ImGui::GetWindowDrawList();
+		// drawList->AddRectFilled(p1, p2, IM_COL32(51, 251, 51, 255));
 		return point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y;;
 	}
 
@@ -141,7 +140,7 @@ namespace AmaterasuDemo
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(26, 26, 26, 255));
-		drawList->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
+		//drawList->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
 
 		ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
@@ -166,6 +165,15 @@ namespace AmaterasuDemo
 		// Input
 		for (SceneNode* child : m_Children)
 		{
+			if (io.MouseClicked[ImGuiMouseButton_Middle] && child->IsOverlapping(io.MousePos))
+			{
+				Node* node = dynamic_cast<Node*>(child);
+				if (node)
+				{
+					node->Execute();
+				}
+			}
+
 			if (m_MouseClicked && child->IsOverlapping(m_MousePosition))
 			{
 				for (SceneNode* childChild : child->GetChildren())
@@ -174,14 +182,12 @@ namespace AmaterasuDemo
 					auto* nodeParameter = dynamic_cast<INodeParameter*>(childChild);
 					if (nodeParameter && nodeParameter->IsOverlapping(m_MousePosition))
 					{
-						std::cout << "Start connection" << std::endl;
 						m_StartNodeParameter = nodeParameter;
 					}
 				}
 
 				if (!m_StartNodeParameter)
 				{
-					std::cout << "This" << std::endl;
 					m_DragItemOffset = child->GetWorldPosition() - m_MousePosition;
 					m_DragItem = child;
 				}
@@ -247,6 +253,7 @@ namespace AmaterasuDemo
 
 	void KSAddFloatNode::Execute()
 	{
+		std::cout << GetDisplayName() << '\n';
 		SetOutput<float>("C", GetInput<float>("A") + GetInput<float>("B"));
 	}
 
