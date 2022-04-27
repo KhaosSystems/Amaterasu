@@ -22,6 +22,8 @@ namespace AmaterasuDemo
 		ImVec2 GetRelativePosition();
 		ImVec2 GetWorldPosition();
 
+        SceneNode* GetParent() const { return m_Parent; }
+
 		virtual bool IsOverlapping(ImVec2 point);
 
         virtual std::deque<SceneNode*>& GetChildren();
@@ -68,6 +70,7 @@ namespace AmaterasuDemo
         virtual void Connect(INodeParameter* other) = 0;
         virtual void SetDisplayName(const std::string& newDisplayName) = 0;
         virtual const std::string& GetDisplayName() const = 0;
+        virtual const std::vector<INodeParameter*>& GetConnections() const = 0;
     };
 
     template<typename T>
@@ -119,6 +122,7 @@ namespace AmaterasuDemo
         virtual void Connect(INodeParameter* other) override { m_Connections.push_back(other); }
         virtual void  SetDisplayName(const std::string& newDisplayName) override { m_DisplayName = newDisplayName; }
         virtual const std::string& GetDisplayName() const override { return m_DisplayName; }
+        virtual const std::vector<INodeParameter*>& GetConnections() const override { return m_Connections; };
 
     private:
         std::string m_DisplayName;
@@ -136,7 +140,7 @@ namespace AmaterasuDemo
 	public:
 		Node(NodeGraph* parent);
 
-		void Render() override;
+		virtual void Render() override;
 		bool IsOverlapping(ImVec2 point) override;
 
         virtual void Execute() = 0;
@@ -202,7 +206,15 @@ namespace AmaterasuDemo
     {
     public:
         KSAddFloatNode(NodeGraph* parent);
+        virtual void Execute() override;
+    };
 
+    struct ExecuteInfo {};
+
+    class KSExecuteNode : public Node
+    {
+    public:
+        KSExecuteNode(NodeGraph* parent);
         virtual void Execute() override;
     };
 }

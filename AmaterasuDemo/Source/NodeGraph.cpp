@@ -109,6 +109,7 @@ namespace AmaterasuDemo
 	NodeGraph::NodeGraph()
 		: m_StartNodeParameter(nullptr), m_DragItem(nullptr)
 	{
+		m_Children.push_back(new KSExecuteNode(this));
 		m_Children.push_back(new KSAddFloatNode(this));
 		m_Children.push_back(new KSAddFloatNode(this));
 	}
@@ -150,6 +151,17 @@ namespace AmaterasuDemo
 			sceneNode->Render();
 		}
 		drawList->PopClipRect();
+
+
+		if (io.MouseClicked[ImGuiMouseButton_Right])
+		{
+			ImGui::OpenPopup("NodeMenu");
+		}
+
+		if (ImGui::BeginPopupContextItem("NodeMenu", 3)) {
+			if (ImGui::Selectable("Copy")) {}
+			ImGui::EndPopup();
+		}
 
 		// Input
 		for (SceneNode* child : m_Children)
@@ -222,11 +234,10 @@ namespace AmaterasuDemo
 	{
 	}
 
+	// Nodes 
 	KSAddFloatNode::KSAddFloatNode(NodeGraph* parent)
 		: Node(parent)
 	{
-		m_Parent = parent;
-
 		SetDisplayName("Add");
 
 		RegisterInput<float>("A");
@@ -237,5 +248,26 @@ namespace AmaterasuDemo
 	void KSAddFloatNode::Execute()
 	{
 		SetOutput<float>("C", GetInput<float>("A") + GetInput<float>("B"));
+	}
+
+	// 
+	KSExecuteNode::KSExecuteNode(NodeGraph* parent)
+		: Node(parent)
+	{
+		SetDisplayName("Execute");
+
+		RegisterOutput<ExecuteInfo>("Execute");
+	}
+
+	void KSExecuteNode::Execute()
+	{
+		for (INodeParameter* connection : m_Outputs["Execute"]->GetConnections())
+		{
+			Node* node = dynamic_cast<Node*>(connection->GetParent());
+			if (node)
+			{
+				node->Execute();
+			}
+		}
 	}
 }
