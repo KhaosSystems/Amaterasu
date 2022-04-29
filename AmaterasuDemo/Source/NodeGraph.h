@@ -36,6 +36,8 @@ namespace AmaterasuDemo
 		std::deque<SceneNode*> m_Children;
 	};
 
+    typedef class Node*(*myfunc)(class NodeGraph*);
+
 	class NodeGraph : public SceneNode
 	{
 	public:
@@ -44,6 +46,9 @@ namespace AmaterasuDemo
 		void Initialize();
 		void Render() override;
 		void Terminate();
+
+        template<std::derived_from<Node> T>
+        void RegisterNodeType();
 
 	private:
 		ImVec2 m_LastMousePosition;
@@ -58,6 +63,8 @@ namespace AmaterasuDemo
         class INodeParameter* m_StartNodeParameter;
         ImVec2 m_DragItemOffset;
 		SceneNode* m_DragItem;
+
+        std::unordered_map<std::string, myfunc> m_NodeTypes;
 	};
 
     class INodeParameter : public SceneNode
@@ -97,7 +104,6 @@ namespace AmaterasuDemo
                 drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(0, 194, 255, 255), 2);
             }
 
-
             drawList->AddCircleFilled(parameterPosition, 8, IM_COL32(51, 51, 51, 255));
             drawList->AddCircleFilled(parameterPosition, 6, IM_COL32(0, 194, 255, 255));
 
@@ -106,11 +112,11 @@ namespace AmaterasuDemo
 
 		bool IsOverlapping(ImVec2 point) override
         {
-            ImDrawList* drawList = ImGui::GetWindowDrawList();
 
             ImVec2 p1 = GetWorldPosition() + ImVec2(-8.0f, -8.0f);
             ImVec2 p2 = GetWorldPosition() + ImVec2(8.0f, 8.0f);
-            drawList->AddRectFilled(p1, p2, IM_COL32(251, 51, 51, 255));
+            // ImDrawList* drawList = ImGui::GetWindowDrawList();
+            // drawList->AddRectFilled(p1, p2, IM_COL32(251, 51, 51, 255));
             return point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y;
         }
     
@@ -137,7 +143,14 @@ namespace AmaterasuDemo
 
 	class Node : public SceneNode 
 	{
-	public:
+    public:
+        template<std::derived_from<Node> T>
+        static Node* Construct(NodeGraph* parent)
+        {
+            return new T(parent);
+        }
+	
+    public:
 		Node(NodeGraph* parent);
 
 		virtual void Render() override;
@@ -194,12 +207,24 @@ namespace AmaterasuDemo
 
         virtual void SetDisplayName(const std::string& newDisplayName) { m_DisplayName = newDisplayName; }
         virtual const std::string& GetDisplayName() const { return m_DisplayName; }
+        
+        virtual void SetTypeName(const std::string& newTypeName) { m_TypeName = newTypeName; }
+        virtual const std::string& GetTypeName() const { return m_TypeName; }
 
     protected:
+        std::string m_TypeName;
         std::string m_DisplayName;
         std::unordered_map<std::string, INodeParameter*> m_Inputs;
         std::unordered_map<std::string, INodeParameter*> m_Outputs;
 	};
+
+    template<std::derived_from<Node> T>
+    void NodeGraph::RegisterNodeType()
+    {
+        T* instance = new T(this);
+        m_NodeTypes[instance->GetTypeName()] = &Node::Construct<T>;
+        delete instance;
+    }
 
     // Nodes
     class KSAddFloatNode : public Node

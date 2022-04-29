@@ -7,6 +7,27 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#include <rapidxml.hpp>
+namespace rapidxml {
+	namespace internal {
+		// https://stackoverflow.com/questions/14113923/rapidxml-print-header-has-undefined-methods
+		template <class OutIt, class Ch> inline OutIt print_children(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+		template <class OutIt, class Ch> inline OutIt print_attributes(OutIt out, const xml_node<Ch>* node, int flags);
+		template <class OutIt, class Ch> inline OutIt print_data_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+		template <class OutIt, class Ch> inline OutIt print_cdata_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+		template <class OutIt, class Ch> inline OutIt print_element_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+		template <class OutIt, class Ch> inline OutIt print_declaration_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+		template <class OutIt, class Ch> inline OutIt print_comment_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+		template <class OutIt, class Ch> inline OutIt print_doctype_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+		template <class OutIt, class Ch> inline OutIt print_pi_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+	}
+}
+#include <rapidxml_print.hpp>
+
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <sstream> 
 namespace AmaterasuDemo
 {
 	SceneNode::SceneNode()
@@ -100,7 +121,7 @@ namespace AmaterasuDemo
 	{
 		ImVec2 p1 = GetWorldPosition() + ImVec2(-8.0f, -8.0f);
 		ImVec2 p2 = GetWorldPosition() + ImVec2(250.0f, 200.0f) + ImVec2(8.0f, 8.0f);
-		//ImDrawList* drawList = ImGui::GetWindowDrawList();
+		// ImDrawList* drawList = ImGui::GetWindowDrawList();
 		// drawList->AddRectFilled(p1, p2, IM_COL32(51, 251, 51, 255));
 		return point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y;;
 	}
@@ -108,6 +129,9 @@ namespace AmaterasuDemo
 	NodeGraph::NodeGraph()
 		: m_StartNodeParameter(nullptr), m_DragItem(nullptr)
 	{
+		RegisterNodeType<KSExecuteNode>();
+		RegisterNodeType<KSAddFloatNode>();
+
 		m_Children.push_back(new KSExecuteNode(this));
 		m_Children.push_back(new KSAddFloatNode(this));
 		m_Children.push_back(new KSAddFloatNode(this));
@@ -158,7 +182,76 @@ namespace AmaterasuDemo
 		}
 
 		if (ImGui::BeginPopupContextItem("NodeMenu", 3)) {
-			if (ImGui::Selectable("Copy")) {}
+			if (ImGui::Selectable("Save"))
+			{
+				rapidxml::xml_document<> xmlDocument;
+				rapidxml::xml_node<>* xmlRootNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Graph");
+
+				for (SceneNode* sceneNode : m_Children)
+				{
+					Node* node = dynamic_cast<Node*>(sceneNode);
+					if (node)
+					{
+						rapidxml::xml_node<>* xmlNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Node");
+
+						xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "Type", node->GetTypeName().c_str()));
+
+						xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", node->GetDisplayName().c_str()));
+
+						rapidxml::xml_node<>* xmlPositionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Position");
+						xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "X", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)node->GetRelativePosition().x).str().c_str())));
+						xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "Y", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)node->GetRelativePosition().y).str().c_str())));
+						xmlNode->append_node(xmlPositionNode);
+
+						xmlRootNode->append_node(xmlNode);
+					}
+				}
+
+				xmlDocument.append_node(xmlRootNode);
+
+				std::cout << xmlDocument << std::endl;
+			
+				// Save to file.
+				std::ofstream file = std::ofstream("project.xml");
+				if (file.is_open())
+				{
+					file << xmlDocument;
+					file.close();
+				}
+			}
+			if (ImGui::Selectable("Load"))
+			{
+				m_Children.clear();
+
+				for (const auto& [type, func] : m_NodeTypes)
+				{
+					std::cout << "Type: " << type << ", Func: " << reinterpret_cast<void*>(func) << '\n';
+				}
+
+				// Load from file.
+				std::ifstream file = std::ifstream("project.xml");
+				std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+				buffer.push_back('\0');
+
+				rapidxml::xml_document<> xmlDocument;
+
+				xmlDocument.parse<0>(&buffer[0]);
+
+				rapidxml::xml_node<>* xmlRootNode;
+				xmlRootNode = xmlDocument.first_node("Graph");
+				for (rapidxml::xml_node<>* node = xmlRootNode->first_node("Node"); node; node = node->next_sibling())
+				{
+					Node* newNode = m_NodeTypes[node->first_node("Type")->value()](this);
+
+					newNode->SetDisplayName(node->first_node("DisplayName")->value());
+
+					float positionX = std::stof(node->first_node("Position")->first_node("X")->value());
+					float positionY = std::stof(node->first_node("Position")->first_node("Y")->value());
+					newNode->SetRelativePosition(ImVec2(positionX, positionY));
+
+					m_Children.push_back(newNode);
+				}
+			}
 			ImGui::EndPopup();
 		}
 
@@ -244,6 +337,7 @@ namespace AmaterasuDemo
 	KSAddFloatNode::KSAddFloatNode(NodeGraph* parent)
 		: Node(parent)
 	{
+		SetTypeName("KSAdd");
 		SetDisplayName("Add");
 
 		RegisterInput<float>("A");
@@ -261,8 +355,9 @@ namespace AmaterasuDemo
 	KSExecuteNode::KSExecuteNode(NodeGraph* parent)
 		: Node(parent)
 	{
+		SetTypeName("KSExecute");
 		SetDisplayName("Execute");
-
+				
 		RegisterOutput<ExecuteInfo>("Execute");
 	}
 
