@@ -24,6 +24,8 @@ namespace rapidxml {
 }
 #include <rapidxml_print.hpp>
 
+// TODO: Only inputs save connection info? or output? who should save?
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -127,7 +129,7 @@ namespace AmaterasuDemo
 	}
 
 	NodeGraph::NodeGraph()
-		: m_StartNodeParameter(nullptr), m_DragItem(nullptr)
+		: m_StartNodeParameter(nullptr), m_DragItem(nullptr), m_IncrementalUniqueIdentifer(0)
 	{
 		RegisterNodeType<KSExecuteNode>();
 		RegisterNodeType<KSAddFloatNode>();
@@ -194,7 +196,7 @@ namespace AmaterasuDemo
 					{
 						rapidxml::xml_node<>* xmlNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Node");
 
-						xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "Type", node->GetTypeName().c_str()));
+						xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", node->GetTypeName().c_str()));
 
 						xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", node->GetDisplayName().c_str()));
 
@@ -202,6 +204,46 @@ namespace AmaterasuDemo
 						xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "X", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)node->GetRelativePosition().x).str().c_str())));
 						xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "Y", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)node->GetRelativePosition().y).str().c_str())));
 						xmlNode->append_node(xmlPositionNode);
+
+						for (const auto& [name, value] : node->GetOutputsDictionary())
+						{
+							rapidxml::xml_node<>* xmlParameterNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Parameter");
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "ParameterType", "Output"));
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", value->GetDisplayName().c_str()));
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", value->GetDataType().name()));
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", value->GetUnqiueIdentifier().c_str()));
+
+							rapidxml::xml_node<>* xmlConnectionsNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connections");
+							for (INodeParameter* connection : value->GetConnections())
+							{
+								rapidxml::xml_node<>* xmlConnectionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connection");
+								xmlConnectionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", connection->GetUnqiueIdentifier().c_str()));
+								xmlConnectionsNode->append_node(xmlConnectionNode);
+							}
+							xmlParameterNode->append_node(xmlConnectionsNode);
+
+							xmlNode->append_node(xmlParameterNode);
+						}
+
+						for (const auto& [name, value] : node->GetInputsDictionary())
+						{
+							rapidxml::xml_node<>* xmlParameterNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Parameter");
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "ParameterType", "Input"));
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", value->GetDisplayName().c_str()));
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", value->GetDataType().name()));
+							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", value->GetUnqiueIdentifier().c_str()));
+
+							rapidxml::xml_node<>* xmlConnectionsNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connections");
+							for (INodeParameter* connection : value->GetConnections())
+							{
+								rapidxml::xml_node<>* xmlConnectionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connection");
+								xmlConnectionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", connection->GetUnqiueIdentifier().c_str()));
+								xmlConnectionsNode->append_node(xmlConnectionNode);
+							}
+							xmlParameterNode->append_node(xmlConnectionsNode);
+
+							xmlNode->append_node(xmlParameterNode);
+						}
 
 						xmlRootNode->append_node(xmlNode);
 					}
@@ -241,7 +283,7 @@ namespace AmaterasuDemo
 				xmlRootNode = xmlDocument.first_node("Graph");
 				for (rapidxml::xml_node<>* node = xmlRootNode->first_node("Node"); node; node = node->next_sibling())
 				{
-					Node* newNode = m_NodeTypes[node->first_node("Type")->value()](this);
+					Node* newNode = m_NodeTypes[node->first_node("TypeName")->value()](this);
 
 					newNode->SetDisplayName(node->first_node("DisplayName")->value());
 

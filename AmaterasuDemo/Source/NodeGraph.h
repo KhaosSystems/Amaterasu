@@ -2,6 +2,9 @@
 #include <vector>
 #include <typeindex>
 #include <unordered_map>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -50,6 +53,12 @@ namespace AmaterasuDemo
         template<std::derived_from<Node> T>
         void RegisterNodeType();
 
+        std::string GenerateUnqiueIdentifier()
+        {
+            m_IncrementalUniqueIdentifer++;
+            return (std::ostringstream{} << std::setw(32) << std::setfill('0') << m_IncrementalUniqueIdentifer).str();
+        }
+
 	private:
 		ImVec2 m_LastMousePosition;
 		bool m_LastMouseDown;
@@ -63,6 +72,8 @@ namespace AmaterasuDemo
         class INodeParameter* m_StartNodeParameter;
         ImVec2 m_DragItemOffset;
 		SceneNode* m_DragItem;
+
+        uint64_t m_IncrementalUniqueIdentifer;
 
         std::unordered_map<std::string, myfunc> m_NodeTypes;
 	};
@@ -78,6 +89,7 @@ namespace AmaterasuDemo
         virtual void SetDisplayName(const std::string& newDisplayName) = 0;
         virtual const std::string& GetDisplayName() const = 0;
         virtual const std::vector<INodeParameter*>& GetConnections() const = 0;
+        virtual const std::string& GetUnqiueIdentifier() const = 0;
     };
 
     template<typename T>
@@ -87,6 +99,10 @@ namespace AmaterasuDemo
 		NodeParameter(class Node* parent)
         {
             m_Parent = parent;
+
+            NodeGraph* graph = dynamic_cast<NodeGraph*>(m_Parent->GetParent());
+            assert(graph != nullptr);
+            m_UnqiueIdentifier = graph->GenerateUnqiueIdentifier();
         }
 
 		void Render() override
@@ -129,9 +145,11 @@ namespace AmaterasuDemo
         virtual void  SetDisplayName(const std::string& newDisplayName) override { m_DisplayName = newDisplayName; }
         virtual const std::string& GetDisplayName() const override { return m_DisplayName; }
         virtual const std::vector<INodeParameter*>& GetConnections() const override { return m_Connections; };
+        virtual const std::string& GetUnqiueIdentifier() const override { return m_UnqiueIdentifier; }
 
     private:
         std::string m_DisplayName;
+        std::string m_UnqiueIdentifier;
         std::vector<INodeParameter*> m_Connections;
         T m_Data;
     };
