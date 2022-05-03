@@ -7,24 +7,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-#include <rapidxml.hpp>
-namespace rapidxml {
-	namespace internal {
-		// https://stackoverflow.com/questions/14113923/rapidxml-print-header-has-undefined-methods
-		template <class OutIt, class Ch> inline OutIt print_children(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-		template <class OutIt, class Ch> inline OutIt print_attributes(OutIt out, const xml_node<Ch>* node, int flags);
-		template <class OutIt, class Ch> inline OutIt print_data_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-		template <class OutIt, class Ch> inline OutIt print_cdata_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-		template <class OutIt, class Ch> inline OutIt print_element_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-		template <class OutIt, class Ch> inline OutIt print_declaration_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-		template <class OutIt, class Ch> inline OutIt print_comment_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-		template <class OutIt, class Ch> inline OutIt print_doctype_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-		template <class OutIt, class Ch> inline OutIt print_pi_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
-	}
-}
-#include <rapidxml_print.hpp>
-
-// TODO: Only inputs save connection info? or output? who should save?
+// TODO: Only inputs save connection info? or output? who should save? Both might be handy.
+// TODO: Make node data inspector (tree view).
 
 #include <iostream>
 #include <fstream>
@@ -81,9 +65,72 @@ namespace AmaterasuDemo
 		drawList->AddRectFilled(GetWorldPosition(), GetWorldPosition() + ImVec2(100.0f, 100.0f), IM_COL32(51, 51, 51, 255));
 	}
 
+	void Node::Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode)
+	{
+		rapidxml::xml_node<>* xmlNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Node");
+
+		// Serialize type name
+		xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", GetTypeName().c_str()));
+
+		// Serialize unique identifier
+		xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", m_UniqueIdentifier.c_str()));
+
+		// Serialize display name
+		xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", GetDisplayName().c_str()));
+
+		// Serialize position
+		rapidxml::xml_node<>* xmlPositionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Position");
+		xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "X", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)GetRelativePosition().x).str().c_str())));
+		xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "Y", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)GetRelativePosition().y).str().c_str())));
+		xmlNode->append_node(xmlPositionNode);
+
+		// Serialize parameters
+		rapidxml::xml_node<>* xmlParametersNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Parameters");
+		for (SceneNode* sceneNode : m_Children)
+		{
+			INodeParameter* parameter = dynamic_cast<INodeParameter*>(sceneNode);
+			if (parameter)
+			{
+				parameter->Serialize(xmlDocument, xmlParametersNode);
+			}
+		}
+		xmlNode->append_node(xmlParametersNode);
+
+		xmlParentNode->append_node(xmlNode);
+	}
+
+	void Node::Deserialize(rapidxml::xml_node<>* xmlNode)
+	{
+		SetDisplayName(xmlNode->first_node("DisplayName")->value());
+		m_UniqueIdentifier = xmlNode->first_node("UniqueIdentifier")->value();
+		float positionX = std::stof(xmlNode->first_node("Position")->first_node("X")->value());
+		float positionY = std::stof(xmlNode->first_node("Position")->first_node("Y")->value());
+		SetRelativePosition(ImVec2(positionX, positionY));
+	}
+
+	void Node::DeserializeParameters(rapidxml::xml_node<>* xmlNode)
+	{
+		rapidxml::xml_node<>* xmlParametersNode = xmlNode->first_node("Parameters");
+		for (rapidxml::xml_node<>* xmlNodeParameterNode = xmlParametersNode->first_node("Parameter"); xmlNodeParameterNode; xmlNodeParameterNode = xmlNodeParameterNode->next_sibling())
+		{
+			for (SceneNode* child : m_Children)
+			{
+				INodeParameter* nodeParameter = dynamic_cast<INodeParameter*>(child);
+				if (nodeParameter && nodeParameter->GetDisplayName() == xmlNodeParameterNode->first_node("DisplayName")->value())
+				{
+					nodeParameter->Deserialize(xmlNodeParameterNode);
+				}
+			}
+		}
+	}
+
 	Node::Node(NodeGraph* parent)
 	{
 		m_Parent = parent;
+
+		NodeGraph* graph = dynamic_cast<NodeGraph*>(m_Parent);
+		assert(graph != nullptr);
+		m_UniqueIdentifier = graph->GenerateUnqiueIdentifier();
 	}
 
 	void Node::Render()
@@ -186,113 +233,11 @@ namespace AmaterasuDemo
 		if (ImGui::BeginPopupContextItem("NodeMenu", 3)) {
 			if (ImGui::Selectable("Save"))
 			{
-				rapidxml::xml_document<> xmlDocument;
-				rapidxml::xml_node<>* xmlRootNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Graph");
-
-				for (SceneNode* sceneNode : m_Children)
-				{
-					Node* node = dynamic_cast<Node*>(sceneNode);
-					if (node)
-					{
-						rapidxml::xml_node<>* xmlNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Node");
-
-						xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", node->GetTypeName().c_str()));
-
-						xmlNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", node->GetDisplayName().c_str()));
-
-						rapidxml::xml_node<>* xmlPositionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Position");
-						xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "X", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)node->GetRelativePosition().x).str().c_str())));
-						xmlPositionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "Y", xmlDocument.allocate_string((std::ostringstream{} << std::fixed << std::setprecision(2) << (float)node->GetRelativePosition().y).str().c_str())));
-						xmlNode->append_node(xmlPositionNode);
-
-						for (const auto& [name, value] : node->GetOutputsDictionary())
-						{
-							rapidxml::xml_node<>* xmlParameterNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Parameter");
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "ParameterType", "Output"));
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", value->GetDisplayName().c_str()));
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", value->GetDataType().name()));
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", value->GetUnqiueIdentifier().c_str()));
-
-							rapidxml::xml_node<>* xmlConnectionsNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connections");
-							for (INodeParameter* connection : value->GetConnections())
-							{
-								rapidxml::xml_node<>* xmlConnectionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connection");
-								xmlConnectionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", connection->GetUnqiueIdentifier().c_str()));
-								xmlConnectionsNode->append_node(xmlConnectionNode);
-							}
-							xmlParameterNode->append_node(xmlConnectionsNode);
-
-							xmlNode->append_node(xmlParameterNode);
-						}
-
-						for (const auto& [name, value] : node->GetInputsDictionary())
-						{
-							rapidxml::xml_node<>* xmlParameterNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Parameter");
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "ParameterType", "Input"));
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", value->GetDisplayName().c_str()));
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", value->GetDataType().name()));
-							xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", value->GetUnqiueIdentifier().c_str()));
-
-							rapidxml::xml_node<>* xmlConnectionsNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connections");
-							for (INodeParameter* connection : value->GetConnections())
-							{
-								rapidxml::xml_node<>* xmlConnectionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connection");
-								xmlConnectionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", connection->GetUnqiueIdentifier().c_str()));
-								xmlConnectionsNode->append_node(xmlConnectionNode);
-							}
-							xmlParameterNode->append_node(xmlConnectionsNode);
-
-							xmlNode->append_node(xmlParameterNode);
-						}
-
-						xmlRootNode->append_node(xmlNode);
-					}
-				}
-
-				xmlDocument.append_node(xmlRootNode);
-
-				std::cout << xmlDocument << std::endl;
-			
-				// Save to file.
-				std::ofstream file = std::ofstream("project.xml");
-				if (file.is_open())
-				{
-					file << xmlDocument;
-					file.close();
-				}
+				Serialize();
 			}
 			if (ImGui::Selectable("Load"))
 			{
-				m_Children.clear();
-
-				for (const auto& [type, func] : m_NodeTypes)
-				{
-					std::cout << "Type: " << type << ", Func: " << reinterpret_cast<void*>(func) << '\n';
-				}
-
-				// Load from file.
-				std::ifstream file = std::ifstream("project.xml");
-				std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-				buffer.push_back('\0');
-
-				rapidxml::xml_document<> xmlDocument;
-
-				xmlDocument.parse<0>(&buffer[0]);
-
-				rapidxml::xml_node<>* xmlRootNode;
-				xmlRootNode = xmlDocument.first_node("Graph");
-				for (rapidxml::xml_node<>* node = xmlRootNode->first_node("Node"); node; node = node->next_sibling())
-				{
-					Node* newNode = m_NodeTypes[node->first_node("TypeName")->value()](this);
-
-					newNode->SetDisplayName(node->first_node("DisplayName")->value());
-
-					float positionX = std::stof(node->first_node("Position")->first_node("X")->value());
-					float positionY = std::stof(node->first_node("Position")->first_node("Y")->value());
-					newNode->SetRelativePosition(ImVec2(positionX, positionY));
-
-					m_Children.push_back(newNode);
-				}
+				Deserialize();
 			}
 			ImGui::EndPopup();
 		}
@@ -375,6 +320,82 @@ namespace AmaterasuDemo
 	{
 	}
 
+	void NodeGraph::Serialize()
+	{
+		rapidxml::xml_document<> xmlDocument;
+		rapidxml::xml_node<>* xmlRootNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "NodeGraph");
+
+		xmlRootNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "IncrementalUniqueIdentifer", xmlDocument.allocate_string((std::ostringstream{} << m_IncrementalUniqueIdentifer).str().c_str())));
+
+		rapidxml::xml_node<>* xmlNodesNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Nodes");
+		for (SceneNode* sceneNode : m_Children)
+		{
+			Node* node = dynamic_cast<Node*>(sceneNode);
+			if (node)
+			{
+				node->Serialize(xmlDocument, xmlNodesNode);
+			}
+		}
+		xmlRootNode->append_node(xmlNodesNode);
+
+		xmlDocument.append_node(xmlRootNode);
+
+		// Save to file.
+		std::ofstream file = std::ofstream("project.xml");
+		if (file.is_open())
+		{
+			file << xmlDocument;
+			file.close();
+		}
+	}
+
+	void NodeGraph::Deserialize()
+	{
+		m_Children.clear();
+
+		// Load from file.
+		std::ifstream file = std::ifstream("project.xml");
+		std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		buffer.push_back('\0');
+
+		rapidxml::xml_document<> xmlDocument;
+		xmlDocument.parse<0>(&buffer[0]);
+
+		rapidxml::xml_node<>* xmlRootNode = xmlDocument.first_node("NodeGraph");
+
+		rapidxml::xml_node<>* xmNodesNode = xmlRootNode->first_node("Nodes");
+		for (rapidxml::xml_node<>* xmlNode = xmNodesNode->first_node("Node"); xmlNode; xmlNode = xmlNode->next_sibling())
+		{
+			Node* newNode = m_NodeTypes[xmlNode->first_node("TypeName")->value()](this);
+			newNode->Deserialize(xmlNode);
+			m_Children.push_back(newNode);
+		}
+
+		for (SceneNode* sceneNode : m_Children)
+		{
+			Node* node = dynamic_cast<Node*>(sceneNode);
+			if (node)
+			{
+				rapidxml::xml_node<>* correspondingXmlNode = nullptr;
+				for (rapidxml::xml_node<>* xmlNode = xmNodesNode->first_node("Node"); xmlNode; xmlNode = xmlNode->next_sibling())
+				{
+					if (xmlNode->first_node("UniqueIdentifier")->value() == node->GetUniqueIdentifier())
+					{
+						correspondingXmlNode = xmlNode;
+						break;
+					}
+				}
+
+				if (correspondingXmlNode)
+				{
+					node->DeserializeParameters(correspondingXmlNode);
+				}
+			}
+		}
+
+		m_IncrementalUniqueIdentifer = std::stoi(xmlRootNode->first_node("IncrementalUniqueIdentifer")->value());
+	}
+
 	// Nodes 
 	KSAddFloatNode::KSAddFloatNode(NodeGraph* parent)
 		: Node(parent)
@@ -399,7 +420,7 @@ namespace AmaterasuDemo
 	{
 		SetTypeName("KSExecute");
 		SetDisplayName("Execute");
-				
+
 		RegisterOutput<ExecuteInfo>("Execute");
 	}
 

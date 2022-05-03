@@ -10,6 +10,23 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#include <rapidxml.hpp>
+namespace rapidxml {
+    namespace internal {
+        // https://stackoverflow.com/questions/14113923/rapidxml-print-header-has-undefined-methods
+        template <class OutIt, class Ch> inline OutIt print_children(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+        template <class OutIt, class Ch> inline OutIt print_attributes(OutIt out, const xml_node<Ch>* node, int flags);
+        template <class OutIt, class Ch> inline OutIt print_data_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+        template <class OutIt, class Ch> inline OutIt print_cdata_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+        template <class OutIt, class Ch> inline OutIt print_element_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+        template <class OutIt, class Ch> inline OutIt print_declaration_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+        template <class OutIt, class Ch> inline OutIt print_comment_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+        template <class OutIt, class Ch> inline OutIt print_doctype_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+        template <class OutIt, class Ch> inline OutIt print_pi_node(OutIt out, const xml_node<Ch>* node, int flags, int indent);
+    }
+}
+#include <rapidxml_print.hpp>
+
 namespace AmaterasuDemo
 {
 	// Scene
@@ -59,6 +76,9 @@ namespace AmaterasuDemo
             return (std::ostringstream{} << std::setw(32) << std::setfill('0') << m_IncrementalUniqueIdentifer).str();
         }
 
+        void Serialize();
+        void Deserialize();
+
 	private:
 		ImVec2 m_LastMousePosition;
 		bool m_LastMouseDown;
@@ -89,7 +109,11 @@ namespace AmaterasuDemo
         virtual void SetDisplayName(const std::string& newDisplayName) = 0;
         virtual const std::string& GetDisplayName() const = 0;
         virtual const std::vector<INodeParameter*>& GetConnections() const = 0;
-        virtual const std::string& GetUnqiueIdentifier() const = 0;
+        virtual const std::string& GetUniqueIdentifier() const = 0;
+        virtual void SetUniqueIdentifier(std::string newUnqiueIdentifier) = 0;
+
+        virtual void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode) = 0;
+        virtual void Deserialize(rapidxml::xml_node<>* xmlNode) = 0;
     };
 
     template<typename T>
@@ -124,6 +148,7 @@ namespace AmaterasuDemo
             drawList->AddCircleFilled(parameterPosition, 6, IM_COL32(0, 194, 255, 255));
 
             drawList->AddText(io.FontDefault, 12.0f, parameterPosition + ImVec2(16.0f, -6.0f), IM_COL32(194, 194, 194, 194), GetDisplayName().c_str());
+            drawList->AddText(io.FontDefault, 12.0f, parameterPosition + ImVec2(16.0f, -16.0f), IM_COL32(194, 194, 194, 194), m_UnqiueIdentifier.c_str());
         }
 
 		bool IsOverlapping(ImVec2 point) override
@@ -145,7 +170,95 @@ namespace AmaterasuDemo
         virtual void  SetDisplayName(const std::string& newDisplayName) override { m_DisplayName = newDisplayName; }
         virtual const std::string& GetDisplayName() const override { return m_DisplayName; }
         virtual const std::vector<INodeParameter*>& GetConnections() const override { return m_Connections; };
-        virtual const std::string& GetUnqiueIdentifier() const override { return m_UnqiueIdentifier; }
+        virtual const std::string& GetUniqueIdentifier() const override { return m_UnqiueIdentifier; }
+        virtual void SetUniqueIdentifier(std::string newUnqiueIdentifier) { m_UnqiueIdentifier = newUnqiueIdentifier; }
+
+        void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode) override
+        {
+            rapidxml::xml_node<>* xmlParameterNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Parameter");
+            xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "ParameterType", "Output"));
+            xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "DisplayName", GetDisplayName().c_str()));
+            xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "TypeName", GetDataType().name()));
+            xmlParameterNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", GetUniqueIdentifier().c_str()));
+
+            rapidxml::xml_node<>* xmlConnectionsNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connections");
+            for (INodeParameter* connection : GetConnections())
+            {
+                rapidxml::xml_node<>* xmlConnectionNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Connection");
+                xmlConnectionNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "UniqueIdentifier", connection->GetUniqueIdentifier().c_str()));
+                xmlConnectionsNode->append_node(xmlConnectionNode);
+            }
+            xmlParameterNode->append_node(xmlConnectionsNode);
+
+            xmlParentNode->append_node(xmlParameterNode);
+        }
+
+        void Deserialize(rapidxml::xml_node<>* xmlNode) override
+        {
+            auto GetParameterWithUniqueIdentifier = [&](std::string uniqueIdentifier)
+            {
+                std::cout << "GetParameterWithUniqueIdentifier, " << uniqueIdentifier << std::endl;
+
+                NodeGraph* nodeGraph = dynamic_cast<NodeGraph*>(GetParent()->GetParent());
+                assert(nodeGraph);
+
+                for (SceneNode* nodeGraphChild : nodeGraph->GetChildren())
+                {
+                    Node* node = dynamic_cast<Node*>(nodeGraphChild);
+                    if (!node) continue;
+                    for (const auto [key, nodeChild] : node->GetInputsDictionary())
+                    {
+                        INodeParameter* parameter = dynamic_cast<INodeParameter*>(nodeChild);
+                        if (parameter)
+                        {
+                            std::cout << "Parameter: " << parameter->GetUniqueIdentifier() << std::endl;
+                            if (parameter->GetUniqueIdentifier() == uniqueIdentifier)
+                            {
+                                return parameter;
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "Ehhhh - Something wired happened!" << std::endl;
+                        }
+                    }
+
+                    for (const auto [key, nodeChild] : node->GetOutputsDictionary())
+                    {
+                        INodeParameter* parameter = dynamic_cast<INodeParameter*>(nodeChild);
+                        if (parameter)
+                        {
+                            std::cout << "Parameter: " << parameter->GetUniqueIdentifier() << std::endl;
+                            if (parameter->GetUniqueIdentifier() == uniqueIdentifier)
+                            {
+                                return parameter;
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "Ehhhh - Something wired happened!" << std::endl;
+                        }
+                    }
+                }
+
+                return (INodeParameter*)nullptr;
+            };
+
+            m_UnqiueIdentifier = xmlNode->first_node("UniqueIdentifier")->value();
+            std::cout << "my uuid is" << m_UnqiueIdentifier << std::endl;
+
+            rapidxml::xml_node<>* xmlConnectionsNode = xmlNode->first_node("Connections");
+            for (rapidxml::xml_node<>* xmlConnectionNode = xmlConnectionsNode->first_node("Connection"); xmlConnectionNode; xmlConnectionNode = xmlConnectionNode->next_sibling())
+            {
+                std::string targetConnectionUniqueIdentifier = xmlConnectionNode->first_node("UniqueIdentifier")->value();
+                INodeParameter* target = GetParameterWithUniqueIdentifier(targetConnectionUniqueIdentifier);
+                if (target)
+                {
+                    std::cout << "this is good?" << std::endl;
+                    Connect(target);
+                }
+            }
+        }
 
     private:
         std::string m_DisplayName;
@@ -168,6 +281,12 @@ namespace AmaterasuDemo
             return new T(parent);
         }
 	
+        std::string GetUniqueIdentifier() const { return m_UniqueIdentifier; }
+
+        void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode);
+        void Deserialize(rapidxml::xml_node<>* xmlNode);
+        void DeserializeParameters(rapidxml::xml_node<>* xmlNode);
+
     public:
 		Node(NodeGraph* parent);
 
@@ -230,6 +349,7 @@ namespace AmaterasuDemo
         virtual const std::string& GetTypeName() const { return m_TypeName; }
 
     protected:
+        std::string m_UniqueIdentifier;
         std::string m_TypeName;
         std::string m_DisplayName;
         std::unordered_map<std::string, INodeParameter*> m_Inputs;
