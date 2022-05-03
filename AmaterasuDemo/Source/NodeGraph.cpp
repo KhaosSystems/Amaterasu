@@ -16,11 +16,6 @@
 #include <sstream> 
 namespace AmaterasuDemo
 {
-	SceneNode::SceneNode()
-		: m_Parent(nullptr), m_Position(ImVec2(0.0f, 0.0f))
-	{
-	}
-
 	SceneNode::SceneNode(SceneNode* parent)
 		: m_Parent(parent), m_Position(ImVec2(0.0f, 0.0f))
 	{
@@ -106,10 +101,7 @@ namespace AmaterasuDemo
 		float positionX = std::stof(xmlNode->first_node("Position")->first_node("X")->value());
 		float positionY = std::stof(xmlNode->first_node("Position")->first_node("Y")->value());
 		SetRelativePosition(ImVec2(positionX, positionY));
-	}
 
-	void Node::DeserializeParameters(rapidxml::xml_node<>* xmlNode)
-	{
 		rapidxml::xml_node<>* xmlParametersNode = xmlNode->first_node("Parameters");
 		for (rapidxml::xml_node<>* xmlNodeParameterNode = xmlParametersNode->first_node("Parameter"); xmlNodeParameterNode; xmlNodeParameterNode = xmlNodeParameterNode->next_sibling())
 		{
@@ -124,7 +116,38 @@ namespace AmaterasuDemo
 		}
 	}
 
+	void Node::DeserializeParameters(rapidxml::xml_node<>* xmlNode)
+	{
+		for (const auto& [key, value] : m_Inputs)
+		{
+			INodeParameter* parameter = dynamic_cast<INodeParameter*>(value);
+			if (parameter)
+			{
+				rapidxml::xml_node<>* correspondingXmlNode = nullptr;
+				rapidxml::xml_node<>* xmlParametersNode = xmlNode->first_node("Parameters");
+				for (rapidxml::xml_node<>* xmlNodeParameterNode = xmlParametersNode->first_node("Parameter"); xmlNodeParameterNode; xmlNodeParameterNode = xmlNodeParameterNode->next_sibling())
+				{
+					if (xmlNodeParameterNode->first_node("UniqueIdentifier")->value() == parameter->GetUniqueIdentifier())
+					{
+						correspondingXmlNode = xmlNodeParameterNode;
+						break;
+					}
+				}
+
+				if (correspondingXmlNode)
+				{
+					parameter->DeserializeConnections(correspondingXmlNode);
+				}
+				else
+				{
+					std::cout << "Failed to find parameter" << std::endl;
+				}
+			}
+		}
+	}
+
 	Node::Node(NodeGraph* parent)
+		: SceneNode(parent)
 	{
 		m_Parent = parent;
 
@@ -176,7 +199,7 @@ namespace AmaterasuDemo
 	}
 
 	NodeGraph::NodeGraph()
-		: m_StartNodeParameter(nullptr), m_DragItem(nullptr), m_IncrementalUniqueIdentifer(0)
+		: SceneNode(nullptr), m_StartNodeParameter(nullptr), m_DragItem(nullptr), m_IncrementalUniqueIdentifer(0)
 	{
 		RegisterNodeType<KSExecuteNode>();
 		RegisterNodeType<KSAddFloatNode>();
@@ -202,6 +225,22 @@ namespace AmaterasuDemo
 		m_MouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
 		m_MouseClicked = ImGui::IsMouseDown(ImGuiMouseButton_Left) && !m_LastMouseClicked;
 		m_MouseReleased = !ImGui::IsMouseDown(ImGuiMouseButton_Left) && m_LastMouseDown;
+
+		ImGui::Begin("Node Graph Data");
+		for (SceneNode* child : m_Children)
+		{
+			Node* node = dynamic_cast<Node*>(child);
+			ImGui::Text("%s | %s", node->GetDisplayName().c_str(), node->GetUniqueIdentifier().c_str());
+			for (const auto& [key, nodeInput] : node->GetInputsDictionary())
+			{
+				ImGui::Text(" - %s | %s", nodeInput->GetDisplayName().c_str(), nodeInput->GetUniqueIdentifier().c_str());
+			}
+			for (const auto& [key, nodeInput] : node->GetOutputsDictionary())
+			{
+				ImGui::Text(" - %s | %s", nodeInput->GetDisplayName().c_str(), nodeInput->GetUniqueIdentifier().c_str());
+			}
+		}
+		ImGui::End();
 
 		ImGui::Begin("Node Graph");
 

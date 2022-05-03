@@ -34,7 +34,6 @@ namespace AmaterasuDemo
 	class SceneNode
 	{
 	public:
-		SceneNode();
 		SceneNode(SceneNode* parent);
 
 		void SetRelativePosition(ImVec2 newPosition);
@@ -101,14 +100,21 @@ namespace AmaterasuDemo
         std::unordered_map<std::string, myfunc> m_NodeTypes;
 	};
 
+
     class INodeParameter : public SceneNode
     {
     public:
+        INodeParameter(Node* parent)
+            : SceneNode((SceneNode*)parent)
+        {
+        }
+
         virtual void GetData(void* data) = 0;
         virtual void SetData(void* data) = 0;
         virtual std::type_index GetDataType() const = 0;
         virtual uint32_t GetDataSize() const = 0;
         virtual void Connect(INodeParameter* other) = 0;
+        virtual void Connected(INodeParameter* other) = 0;
         virtual void SetDisplayName(const std::string& newDisplayName) = 0;
         virtual const std::string& GetDisplayName() const = 0;
         virtual const std::vector<INodeParameter*>& GetConnections() const = 0;
@@ -117,15 +123,19 @@ namespace AmaterasuDemo
 
         virtual void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode) = 0;
         virtual void Deserialize(rapidxml::xml_node<>* xmlNode) = 0;
+        virtual void DeserializeConnections(rapidxml::xml_node<>* xmlNode) = 0;
     };
 
     template<typename T>
 	class NodeParameter : public INodeParameter
 	{
 	public:
-		NodeParameter(class Node* parent)
+		NodeParameter(Node* parent)
+            : INodeParameter(parent)
         {
             m_Parent = parent;
+
+            std::cout << "New NodeParameter was just created" << std::endl;
 
             NodeGraph* graph = dynamic_cast<NodeGraph*>(m_Parent->GetParent());
             assert(graph != nullptr);
@@ -169,7 +179,15 @@ namespace AmaterasuDemo
         virtual void SetData(void* data) override { memcpy(&m_Data, data, sizeof(T)); }
         virtual std::type_index GetDataType() const override { return std::type_index(typeid(T)); }
         virtual uint32_t GetDataSize() const override { return sizeof(T); }
-        virtual void Connect(INodeParameter* other) override { m_Connections.push_back(other); }
+        virtual void Connect(INodeParameter* other) override
+        {
+            m_Connections.push_back(other);
+            other->Connected(this);
+        }
+        virtual void Connected(INodeParameter* other) override
+        {
+            m_Connections.push_back(other);
+        }
         virtual void  SetDisplayName(const std::string& newDisplayName) override { m_DisplayName = newDisplayName; }
         virtual const std::string& GetDisplayName() const override { return m_DisplayName; }
         virtual const std::vector<INodeParameter*>& GetConnections() const override { return m_Connections; };
@@ -198,6 +216,12 @@ namespace AmaterasuDemo
 
         void Deserialize(rapidxml::xml_node<>* xmlNode) override
         {
+            std::cout << "I was:      " << m_UnqiueIdentifier << ",\n Now i am: " << xmlNode->first_node("UniqueIdentifier")->value() << std::endl;
+            m_UnqiueIdentifier = xmlNode->first_node("UniqueIdentifier")->value();
+        }
+
+        void DeserializeConnections(rapidxml::xml_node<>* xmlNode) override
+        {
             auto GetParameterWithUniqueIdentifier = [&](std::string uniqueIdentifier)
             {
                 std::cout << "GetParameterWithUniqueIdentifier, " << uniqueIdentifier << std::endl;
@@ -209,7 +233,7 @@ namespace AmaterasuDemo
                 {
                     Node* node = dynamic_cast<Node*>(nodeGraphChild);
                     if (!node) continue;
-                    for (const auto [key, nodeChild] : node->GetInputsDictionary())
+                    for (const auto& [key, nodeChild] : node->GetInputsDictionary())
                     {
                         INodeParameter* parameter = dynamic_cast<INodeParameter*>(nodeChild);
                         if (parameter)
@@ -226,7 +250,7 @@ namespace AmaterasuDemo
                         }
                     }
 
-                    for (const auto [key, nodeChild] : node->GetOutputsDictionary())
+                    for (const auto& [key, nodeChild] : node->GetOutputsDictionary())
                     {
                         INodeParameter* parameter = dynamic_cast<INodeParameter*>(nodeChild);
                         if (parameter)
@@ -246,9 +270,6 @@ namespace AmaterasuDemo
 
                 return (INodeParameter*)nullptr;
             };
-
-            m_UnqiueIdentifier = xmlNode->first_node("UniqueIdentifier")->value();
-            std::cout << "my uuid is" << m_UnqiueIdentifier << std::endl;
 
             rapidxml::xml_node<>* xmlConnectionsNode = xmlNode->first_node("Connections");
             for (rapidxml::xml_node<>* xmlConnectionNode = xmlConnectionsNode->first_node("Connection"); xmlConnectionNode; xmlConnectionNode = xmlConnectionNode->next_sibling())
