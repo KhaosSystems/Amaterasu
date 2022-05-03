@@ -325,8 +325,6 @@ namespace AmaterasuDemo
 		rapidxml::xml_document<> xmlDocument;
 		rapidxml::xml_node<>* xmlRootNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "NodeGraph");
 
-		xmlRootNode->append_node(xmlDocument.allocate_node(rapidxml::node_type::node_element, "IncrementalUniqueIdentifer", xmlDocument.allocate_string((std::ostringstream{} << m_IncrementalUniqueIdentifer).str().c_str())));
-
 		rapidxml::xml_node<>* xmlNodesNode = xmlDocument.allocate_node(rapidxml::node_type::node_element, "Nodes");
 		for (SceneNode* sceneNode : m_Children)
 		{
@@ -392,8 +390,6 @@ namespace AmaterasuDemo
 				}
 			}
 		}
-
-		m_IncrementalUniqueIdentifer = std::stoi(xmlRootNode->first_node("IncrementalUniqueIdentifer")->value());
 	}
 
 	// Nodes 

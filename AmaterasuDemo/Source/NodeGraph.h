@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <chrono>
 
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -72,8 +73,10 @@ namespace AmaterasuDemo
 
         std::string GenerateUnqiueIdentifier()
         {
+            uint64_t milliseconds_since_epoch = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+
             m_IncrementalUniqueIdentifer++;
-            return (std::ostringstream{} << std::setw(32) << std::setfill('0') << m_IncrementalUniqueIdentifer).str();
+            return (std::ostringstream{} << std::setw(32) << std::setfill('0') << m_IncrementalUniqueIdentifer + milliseconds_since_epoch).str();
         }
 
         void Serialize();
