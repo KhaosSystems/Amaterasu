@@ -233,11 +233,13 @@ namespace AmaterasuDemo
 			ImGui::Text("%s | %s", node->GetDisplayName().c_str(), node->GetUniqueIdentifier().c_str());
 			for (const auto& [key, nodeInput] : node->GetInputsDictionary())
 			{
-				ImGui::Text(" - %s | %s", nodeInput->GetDisplayName().c_str(), nodeInput->GetUniqueIdentifier().c_str());
+				ImGui::Text(" - %s | in: %s", nodeInput->GetDisplayName().c_str(), nodeInput->GetUniqueIdentifier().c_str());
+				for (INodeParameter* connection : nodeInput->GetConnections()) { ImGui::Text(" - connection: %s", connection->GetUniqueIdentifier().c_str()); }
 			}
 			for (const auto& [key, nodeInput] : node->GetOutputsDictionary())
 			{
-				ImGui::Text(" - %s | %s", nodeInput->GetDisplayName().c_str(), nodeInput->GetUniqueIdentifier().c_str());
+				ImGui::Text(" - %s | out: %s", nodeInput->GetDisplayName().c_str(), nodeInput->GetUniqueIdentifier().c_str());
+				for (INodeParameter* connection : nodeInput->GetConnections()) { ImGui::Text(" - connection: %s", connection->GetUniqueIdentifier().c_str()); }
 			}
 		}
 		ImGui::End();
@@ -270,13 +272,15 @@ namespace AmaterasuDemo
 		}
 
 		if (ImGui::BeginPopupContextItem("NodeMenu", 3)) {
-			if (ImGui::Selectable("Save"))
+			if (ImGui::Selectable("Save")) { Serialize(); }
+			if (ImGui::Selectable("Load")) { Deserialize(); }
+			ImGui::Separator();
+			for (const auto& [name, constructor] : m_NodeTypes)
 			{
-				Serialize();
-			}
-			if (ImGui::Selectable("Load"))
-			{
-				Deserialize();
+				if (ImGui::Selectable(name.c_str()))
+				{
+					m_Children.push_back(constructor(this));
+				}
 			}
 			ImGui::EndPopup();
 		}
