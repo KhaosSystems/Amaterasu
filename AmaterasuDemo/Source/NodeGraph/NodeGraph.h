@@ -181,13 +181,38 @@ namespace AmaterasuDemo
         virtual uint32_t GetDataSize() const override { return sizeof(T); }
         virtual void Connect(INodeParameter* other) override
         {
+            if (other == this)
+            {
+                std::cout << "Failed to connect node parameters, a parameter can't be connected with it self.\n";
+                return;
+            }
+
+            if (std::find(m_Connections.begin(), m_Connections.end(), other) != m_Connections.end())
+            {
+                std::cout << "Failed to connect node parameters, a connection already exists.\n";
+                return;
+            }
+
             m_Connections.push_back(other);
             other->Connected(this);
         }
         virtual void Connected(INodeParameter* other) override
         {
+            if (other == this)
+            {
+                std::cout << "Failed to connect node parameters, a parameter can't be connected with it self.\n";
+                return;
+            }
+
+            if (std::find(m_Connections.begin(), m_Connections.end(), other) != m_Connections.end())
+            {
+                std::cout << "Failed to connect node parameters, a connection already exists.\n";
+                return;
+            }
+
             m_Connections.push_back(other);
         }
+
         virtual void  SetDisplayName(const std::string& newDisplayName) override { m_DisplayName = newDisplayName; }
         virtual const std::string& GetDisplayName() const override { return m_DisplayName; }
         virtual const std::vector<INodeParameter*>& GetConnections() const override { return m_Connections; };

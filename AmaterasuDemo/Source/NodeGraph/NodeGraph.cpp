@@ -311,26 +311,25 @@ namespace AmaterasuDemo
 
 		if (m_MouseReleased)
 		{
-			for (SceneNode* child : m_Children)
+			if (m_StartNodeParameter)
 			{
-				if (!m_StartNodeParameter) break;
-
-				if (child->IsOverlapping(m_MousePosition))
+				for (SceneNode* child : m_Children)
 				{
-					for (SceneNode* childChild : child->GetChildren())
+					if (child->IsOverlapping(m_MousePosition))
 					{
-						if (!m_StartNodeParameter) break;
-
-						auto* nodeParameter = dynamic_cast<INodeParameter*>(childChild);
-						if (nodeParameter && nodeParameter->IsOverlapping(m_MousePosition))
+						for (SceneNode* childChild : child->GetChildren())
 						{
-							m_StartNodeParameter->Connect(nodeParameter);
-							m_StartNodeParameter = nullptr;
+							auto* nodeParameter = dynamic_cast<INodeParameter*>(childChild);
+							if (nodeParameter && nodeParameter->IsOverlapping(m_MousePosition))
+							{
+								m_StartNodeParameter->Connect(nodeParameter);
+								m_StartNodeParameter = nullptr;
+							}
 						}
 					}
 				}
-
 			}
+
 			m_DragItem = nullptr;
 			m_StartNodeParameter = nullptr;
 		}
