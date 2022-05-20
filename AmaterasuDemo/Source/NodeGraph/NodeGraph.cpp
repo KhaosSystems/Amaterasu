@@ -451,7 +451,12 @@ namespace AmaterasuDemo
 		SetTypeName("KSExecute");
 		SetDisplayName("Execute");
 
-		RegisterOutput<ExecuteInfo>("Execute");
+		// TODO: Haveing an input and output with the same key causes issues, fix this - the responsible code is inside Node::Deserialize, it finds parameters by display names instead of UUIDs.
+		// RegisterInput<ExecuteInfo>("Execute");
+		// RegisterOutput<ExecuteInfo>("Execute");
+
+		RegisterInput<ExecuteInfo>("InExecute");
+		RegisterOutput<ExecuteInfo>("OutExecute");
 	}
 
 	void KSExecuteNode::Execute()

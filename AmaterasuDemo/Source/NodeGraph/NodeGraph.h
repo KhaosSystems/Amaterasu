@@ -102,6 +102,12 @@ namespace AmaterasuDemo
 
     struct ExecuteInfo {};
 
+    enum class ENodeParameterDirection
+    {
+        Output, 
+        Input
+    };
+
    class INodeParameter : public SceneNode
     {
     public:
@@ -122,7 +128,9 @@ namespace AmaterasuDemo
         virtual const std::string& GetUniqueIdentifier() const = 0;
         virtual void SetUniqueIdentifier(std::string newUnqiueIdentifier) = 0;
         virtual ImU32 GetDataTypeColor() const = 0;
-        
+        virtual void SetDirection(ENodeParameterDirection direction) = 0;
+        virtual ENodeParameterDirection GetDirection() const = 0;
+
         virtual void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode) = 0;
         virtual void Deserialize(rapidxml::xml_node<>* xmlNode) = 0;
         virtual void DeserializeConnections(rapidxml::xml_node<>* xmlNode) = 0;
@@ -156,7 +164,7 @@ namespace AmaterasuDemo
                 ImVec2 start = parameterPosition;
                 ImVec2 end = connection->GetWorldPosition();
                 drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 6);
-                drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(0, 194, 255, 255), 2);
+                drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, GetDataTypeColor(), 2);
             }
 
             drawList->AddCircleFilled(parameterPosition, 8, IM_COL32(51, 51, 51, 255));
@@ -183,6 +191,8 @@ namespace AmaterasuDemo
         virtual uint32_t GetDataSize() const override { return sizeof(T); }
         virtual void Connect(INodeParameter* other) override
         {
+            std::cout << "Connect: " << this->GetUniqueIdentifier() << ", " << other->GetUniqueIdentifier() << "\n";
+
             if (other == this)
             {
                 std::cout << "Failed to connect node parameters, a parameter can't be connected with it self.\n";
@@ -192,6 +202,12 @@ namespace AmaterasuDemo
             if (other->GetDataType() != this->GetDataType())
             {
                 std::cout << "Failed to connect node parameters, parameters need to be of same type.\n";
+                return;
+            }
+
+            if (other->GetDirection() == this->GetDirection())
+            {
+                std::cout << "Failed to connect node parameters, parameters can't have the same direction.\n";
                 return;
             }
 
@@ -206,6 +222,8 @@ namespace AmaterasuDemo
         }
         virtual void Connected(INodeParameter* other) override
         {
+            std::cout << "Connected: " << this->GetUniqueIdentifier() << ", " << other->GetUniqueIdentifier() << "\n";
+
             if (other == this)
             {
                 std::cout << "Failed to connect node parameters, a parameter can't be connected with it self.\n";
@@ -215,6 +233,12 @@ namespace AmaterasuDemo
             if (other->GetDataType() != this->GetDataType())
             {
                 std::cout << "Failed to connect node parameters, parameters need to be of same type.\n";
+                return;
+            }
+
+            if (other->GetDirection() == this->GetDirection())
+            {
+                std::cout << "Failed to connect node parameters, parameters can't have the same direction.\n";
                 return;
             }
 
@@ -232,6 +256,8 @@ namespace AmaterasuDemo
         virtual const std::string& GetUniqueIdentifier() const override { return m_UnqiueIdentifier; }
         virtual void SetUniqueIdentifier(std::string newUnqiueIdentifier) { m_UnqiueIdentifier = newUnqiueIdentifier; }
         virtual ImU32 GetDataTypeColor() const override { return IM_COL32(125, 125, 125, 255); }
+        virtual void SetDirection(ENodeParameterDirection direction) override { m_Direction = direction; }
+        virtual ENodeParameterDirection GetDirection() const override { return m_Direction; }
 
         void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode) override
         {
@@ -328,6 +354,7 @@ namespace AmaterasuDemo
         std::string m_UnqiueIdentifier;
         std::vector<INodeParameter*> m_Connections;
         T m_Data;
+        ENodeParameterDirection m_Direction;
     };
 
     template<> inline ImU32 NodeParameter<ExecuteInfo>::GetDataTypeColor() const { return IM_COL32(255, 255, 255, 255); }
@@ -367,7 +394,9 @@ namespace AmaterasuDemo
         {
             assert(!m_Inputs.contains(key));
 
+
             NodeParameter<T>* input = new NodeParameter<T>(this);
+            input->SetDirection(ENodeParameterDirection::Input);
             input->SetDisplayName(key);
             input->SetRelativePosition(ImVec2(0.0f, 13.0f + 18.0f + (22.0f * m_Inputs.size())));
             m_Inputs[key] = input;
@@ -380,6 +409,8 @@ namespace AmaterasuDemo
             assert(!m_Outputs.contains(key));
 
             NodeParameter<T>* output = new NodeParameter<T>(this);
+            output->SetDirection(ENodeParameterDirection::Output);
+            output->SetDisplayName(key);
             output->SetRelativePosition(ImVec2(250.0f, 13.0f + 18.0f + (22.0f * m_Outputs.size())));
             m_Outputs[key] = output;
             m_Children.push_back(output);
