@@ -100,6 +100,12 @@ namespace AmaterasuDemo
         std::unordered_map<std::string, myfunc> m_NodeTypes;
 	};
 
+    struct ExecuteInfo {};
+
+    template<typename T> constexpr static ImU32 GetDataTypeColor() { return IM_COL32(125, 125, 125, 255); }
+    template<> constexpr static ImU32 GetDataTypeColor<ExecuteInfo>() { return IM_COL32(255, 255, 255, 255); }
+    template<> constexpr static ImU32 GetDataTypeColor<float>() { return IM_COL32(0, 194, 255, 255); }
+    template<> constexpr static ImU32 GetDataTypeColor<std::string>() { return IM_COL32(154, 0, 255, 255); }
 
     class INodeParameter : public SceneNode
     {
@@ -158,7 +164,7 @@ namespace AmaterasuDemo
             }
 
             drawList->AddCircleFilled(parameterPosition, 8, IM_COL32(51, 51, 51, 255));
-            drawList->AddCircleFilled(parameterPosition, 6, IM_COL32(0, 194, 255, 255));
+            drawList->AddCircleFilled(parameterPosition, 6, GetDataTypeColor<T>());
 
             drawList->AddText(io.FontDefault, 12.0f, parameterPosition + ImVec2(16.0f, -6.0f), IM_COL32(194, 194, 194, 194), GetDisplayName().c_str());
             drawList->AddText(io.FontDefault, 12.0f, parameterPosition + ImVec2(16.0f, -16.0f), IM_COL32(194, 194, 194, 194), m_UnqiueIdentifier.c_str());
@@ -420,8 +426,6 @@ namespace AmaterasuDemo
         KSAddFloatNode(NodeGraph* parent);
         virtual void Execute() override;
     };
-
-    struct ExecuteInfo {};
 
     class KSExecuteNode : public Node
     {
