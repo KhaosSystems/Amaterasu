@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-
 # glad
 project(glad)
 set(GLAD_DIRECTORY "${CMAKE_SOURCE_DIR}/Amaterasu/Vendor/glad")
 add_library(glad "${GLAD_DIRECTORY}/include/glad/glad.h" "${GLAD_DIRECTORY}/include/KHR/khrplatform.h" "${GLAD_DIRECTORY}/src/glad.c")
 target_include_directories(glad PUBLIC "${GLAD_DIRECTORY}/include")
-
 
 # glfw
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

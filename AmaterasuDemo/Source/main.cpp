@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include <imgui.h>
-#include <imgui_node_editor.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
@@ -17,9 +16,7 @@
 #include <typeindex>
 #include <iostream>
 
-namespace ed = ax::NodeEditor;
-
-#include "NodeGraph.h"
+#include "NodeGraph/NodeGraph.h"
 
 #include "GUI.h"
 
@@ -120,8 +117,6 @@ namespace AmaterasuDemo
 		m_Workspace1.Render();
 
 		m_NodeGraph.Render();
-
-		ImGui::ShowDemoWindow();
 
         {
             ImGui::End(); // Dockspace

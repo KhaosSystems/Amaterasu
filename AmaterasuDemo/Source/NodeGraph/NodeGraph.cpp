@@ -203,10 +203,6 @@ namespace AmaterasuDemo
 	{
 		RegisterNodeType<KSExecuteNode>();
 		RegisterNodeType<KSAddFloatNode>();
-
-		m_Children.push_back(new KSExecuteNode(this));
-		m_Children.push_back(new KSAddFloatNode(this));
-		m_Children.push_back(new KSAddFloatNode(this));
 	}
 
 	void NodeGraph::Initialize()
@@ -223,8 +219,8 @@ namespace AmaterasuDemo
 		m_LastMouseReleased = m_MouseReleased;
 		m_MousePosition = ImGui::GetMousePos();
 		m_MouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-		m_MouseClicked = ImGui::IsMouseDown(ImGuiMouseButton_Left) && !m_LastMouseClicked;
-		m_MouseReleased = !ImGui::IsMouseDown(ImGuiMouseButton_Left) && m_LastMouseDown;
+		m_MouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+		m_MouseReleased = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
 		ImGui::Begin("Node Graph Data");
 		for (SceneNode* child : m_Children)
@@ -265,7 +261,6 @@ namespace AmaterasuDemo
 		}
 		drawList->PopClipRect();
 
-
 		if (io.MouseClicked[ImGuiMouseButton_Right])
 		{
 			ImGui::OpenPopup("NodeMenu");
@@ -277,10 +272,7 @@ namespace AmaterasuDemo
 			ImGui::Separator();
 			for (const auto& [name, constructor] : m_NodeTypes)
 			{
-				if (ImGui::Selectable(name.c_str()))
-				{
-					m_Children.push_back(constructor(this));
-				}
+				if (ImGui::Selectable(name.c_str())) { m_Children.push_back(constructor(this)); }
 			}
 			ImGui::EndPopup();
 		}
