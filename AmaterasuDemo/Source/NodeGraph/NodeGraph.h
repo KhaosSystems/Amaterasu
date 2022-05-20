@@ -102,12 +102,7 @@ namespace AmaterasuDemo
 
     struct ExecuteInfo {};
 
-    template<typename T> constexpr static ImU32 GetDataTypeColor() { return IM_COL32(125, 125, 125, 255); }
-    template<> constexpr static ImU32 GetDataTypeColor<ExecuteInfo>() { return IM_COL32(255, 255, 255, 255); }
-    template<> constexpr static ImU32 GetDataTypeColor<float>() { return IM_COL32(0, 194, 255, 255); }
-    template<> constexpr static ImU32 GetDataTypeColor<std::string>() { return IM_COL32(154, 0, 255, 255); }
-
-    class INodeParameter : public SceneNode
+   class INodeParameter : public SceneNode
     {
     public:
         INodeParameter(Node* parent)
@@ -126,7 +121,8 @@ namespace AmaterasuDemo
         virtual const std::vector<INodeParameter*>& GetConnections() const = 0;
         virtual const std::string& GetUniqueIdentifier() const = 0;
         virtual void SetUniqueIdentifier(std::string newUnqiueIdentifier) = 0;
-
+        virtual ImU32 GetDataTypeColor() const = 0;
+        
         virtual void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode) = 0;
         virtual void Deserialize(rapidxml::xml_node<>* xmlNode) = 0;
         virtual void DeserializeConnections(rapidxml::xml_node<>* xmlNode) = 0;
@@ -164,7 +160,7 @@ namespace AmaterasuDemo
             }
 
             drawList->AddCircleFilled(parameterPosition, 8, IM_COL32(51, 51, 51, 255));
-            drawList->AddCircleFilled(parameterPosition, 6, GetDataTypeColor<T>());
+            drawList->AddCircleFilled(parameterPosition, 6, GetDataTypeColor());
 
             drawList->AddText(io.FontDefault, 12.0f, parameterPosition + ImVec2(16.0f, -6.0f), IM_COL32(194, 194, 194, 194), GetDisplayName().c_str());
             drawList->AddText(io.FontDefault, 12.0f, parameterPosition + ImVec2(16.0f, -16.0f), IM_COL32(194, 194, 194, 194), m_UnqiueIdentifier.c_str());
@@ -193,6 +189,12 @@ namespace AmaterasuDemo
                 return;
             }
 
+            if (other->GetDataType() != this->GetDataType())
+            {
+                std::cout << "Failed to connect node parameters, parameters need to be of same type.\n";
+                return;
+            }
+
             if (std::find(m_Connections.begin(), m_Connections.end(), other) != m_Connections.end())
             {
                 std::cout << "Failed to connect node parameters, a connection already exists.\n";
@@ -210,6 +212,12 @@ namespace AmaterasuDemo
                 return;
             }
 
+            if (other->GetDataType() != this->GetDataType())
+            {
+                std::cout << "Failed to connect node parameters, parameters need to be of same type.\n";
+                return;
+            }
+
             if (std::find(m_Connections.begin(), m_Connections.end(), other) != m_Connections.end())
             {
                 std::cout << "Failed to connect node parameters, a connection already exists.\n";
@@ -218,12 +226,12 @@ namespace AmaterasuDemo
 
             m_Connections.push_back(other);
         }
-
         virtual void  SetDisplayName(const std::string& newDisplayName) override { m_DisplayName = newDisplayName; }
         virtual const std::string& GetDisplayName() const override { return m_DisplayName; }
         virtual const std::vector<INodeParameter*>& GetConnections() const override { return m_Connections; };
         virtual const std::string& GetUniqueIdentifier() const override { return m_UnqiueIdentifier; }
         virtual void SetUniqueIdentifier(std::string newUnqiueIdentifier) { m_UnqiueIdentifier = newUnqiueIdentifier; }
+        virtual ImU32 GetDataTypeColor() const override { return IM_COL32(125, 125, 125, 255); }
 
         void Serialize(rapidxml::xml_document<>& xmlDocument, rapidxml::xml_node<>* xmlParentNode) override
         {
@@ -321,6 +329,10 @@ namespace AmaterasuDemo
         std::vector<INodeParameter*> m_Connections;
         T m_Data;
     };
+
+    template<> inline ImU32 NodeParameter<ExecuteInfo>::GetDataTypeColor() const { return IM_COL32(255, 255, 255, 255); }
+    template<> inline ImU32 NodeParameter<float>::GetDataTypeColor() const { return IM_COL32(0, 194, 255, 255); }
+    template<> inline ImU32 NodeParameter<std::string>::GetDataTypeColor() const { return IM_COL32(154, 0, 255, 255); }
 
     class INode : public SceneNode
     {
@@ -433,4 +445,5 @@ namespace AmaterasuDemo
         KSExecuteNode(NodeGraph* parent);
         virtual void Execute() override;
     };
+
 }

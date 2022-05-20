@@ -339,7 +339,7 @@ namespace AmaterasuDemo
 			ImVec2 start = m_StartNodeParameter->GetWorldPosition();
 			ImVec2 end = m_MousePosition;
 			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 6);
-			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(0, 194, 255, 255), 2);
+			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, m_StartNodeParameter->GetDataTypeColor(), 2);
 		}
 
 		if (m_DragItem)
