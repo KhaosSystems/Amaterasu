@@ -203,6 +203,7 @@ namespace AmaterasuDemo
 	{
 		RegisterNodeType<KSExecuteNode>();
 		RegisterNodeType<KSAddFloatNode>();
+		RegisterNodeType<KSPrintNode>();
 	}
 
 	void NodeGraph::Initialize()
@@ -240,6 +241,8 @@ namespace AmaterasuDemo
 		}
 		ImGui::End();
 
+		ImGui::ShowDemoWindow();
+
 		ImGui::Begin("Node Graph");
 
 		m_Position = ImGui::GetCursorScreenPos();
@@ -252,7 +255,8 @@ namespace AmaterasuDemo
 		drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(26, 26, 26, 255));
 		//drawList->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
 
-		ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+		// So why did i add this - it breaks imgui inputs?
+		//ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
 		drawList->PushClipRect(canvas_p0, canvas_p1, true);
 		for (SceneNode* sceneNode : m_Children)
@@ -461,7 +465,32 @@ namespace AmaterasuDemo
 
 	void KSExecuteNode::Execute()
 	{
-		for (INodeParameter* connection : m_Outputs["Execute"]->GetConnections())
+		for (INodeParameter* connection : m_Outputs["OutExecute"]->GetConnections())
+		{
+			Node* node = dynamic_cast<Node*>(connection->GetParent());
+			if (node)
+			{
+				node->Execute();
+			}
+		}
+	}
+
+	KSPrintNode::KSPrintNode(NodeGraph* parent)
+		: Node(parent)
+	{
+		SetTypeName("KSPrintNode");
+		SetDisplayName("Print");
+
+		RegisterInput<ExecuteInfo>("InExecute");
+		RegisterInput<float>("Message");
+		RegisterOutput<ExecuteInfo>("OutExecute");
+	}
+
+	void KSPrintNode::Execute()
+	{
+		std::cout << "Print: " << GetInput<float>("Message") << std::endl;
+
+		for (INodeParameter* connection : m_Outputs["OutExecute"]->GetConnections())
 		{
 			Node* node = dynamic_cast<Node*>(connection->GetParent());
 			if (node)
