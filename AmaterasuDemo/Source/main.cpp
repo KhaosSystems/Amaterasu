@@ -54,13 +54,13 @@ namespace AmaterasuDemo
 	{
 		Application::ImGuiRender();
 
+		ImGui::ShowDemoWindow();
+
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiContext& g = *GImGui;
+		ImGuiStyle& style = ImGui::GetStyle();
 
-		// 
-
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
+		// Workspaces
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
 		window_flags |= ImGuiWindowFlags_NoTitleBar;
 		window_flags |= ImGuiWindowFlags_NoCollapse;
@@ -70,16 +70,12 @@ namespace AmaterasuDemo
 		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
 		window_flags |= ImGuiWindowFlags_NoNavFocus;
 
-
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-
 		ImGuiWindowClass workspaceClass;
 		workspaceClass.ClassId = ImHashStr("Workspace");
 		workspaceClass.DockingAllowUnclassed = false;
 
+		style.WindowMenuButtonPosition = ImGuiDir_Left;
+		style.FramePadding = ImVec2(8.0f, 8.0f);
 		ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
 		{
@@ -114,8 +110,11 @@ namespace AmaterasuDemo
 		{
 			ImGui::SetNextWindowClass(&workspaceClass);
 			ImGui::Begin("SceneEditorWorkspaceWindow", (bool*)0, ImGuiDockNodeFlags_None);
-			ImGui::DockSpace(ImGui::GetID("SceneEditorWorkspaceWindow"), ImVec2(0.0f, 0.0f), dockspace_flags);
 			
+			style.WindowMenuButtonPosition = ImGuiDir_None;
+			style.FramePadding = ImVec2(4.0f, 4.0f);
+			ImGui::DockSpace(ImGui::GetID("SceneEditorWorkspaceWindow"), ImVec2(0.0f, 0.0f));
+
 			ImGuiWindowClass sceneToolClass;
 			sceneToolClass.ClassId = ImHashStr("SceneToolClass");
 			sceneToolClass.DockingAllowUnclassed = false;
