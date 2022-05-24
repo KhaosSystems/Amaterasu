@@ -126,14 +126,14 @@ namespace Amaterasu
 		style.WindowMenuButtonPosition = ImGuiDir_Right;
 		// Colors
 		ImVec4* colors = ImGui::GetStyle().Colors;
-		colors[ImGuiCol_WindowBg] = ImColor(30, 30, 30, 255);
+		colors[ImGuiCol_WindowBg] = ImColor(21, 21, 21, 255);
 		colors[ImGuiCol_Button] = ImColor(30, 30, 30, 255);
 		colors[ImGuiCol_FrameBg] = ImColor(35, 35, 35, 255);
 		colors[ImGuiCol_FrameBgHovered] = ImColor(65, 65, 65, 255);
 		colors[ImGuiCol_FrameBgActive] = ImColor(45, 45, 45, 255);
-		colors[ImGuiCol_TitleBg] = ImColor(0, 0, 0, 255);
-		colors[ImGuiCol_TitleBgActive] = ImColor(0, 0, 0, 255);
-		colors[ImGuiCol_TitleBgCollapsed] = ImColor(0, 0, 0, 255);
+		colors[ImGuiCol_TitleBg] = ImColor(0, 0, 0, 0);
+		colors[ImGuiCol_TitleBgActive] = ImColor(0, 0, 0, 0);
+		colors[ImGuiCol_TitleBgCollapsed] = ImColor(0, 0, 0, 0);
 		colors[ImGuiCol_ButtonHovered] = ImColor(40, 40, 40, 255);
 		colors[ImGuiCol_ButtonActive] = ImColor(60, 60, 60, 255);
 		colors[ImGuiCol_Header] = ImColor(35, 35, 35, 255);
@@ -142,11 +142,11 @@ namespace Amaterasu
 		colors[ImGuiCol_Separator] = ImColor(35, 35, 35, 255);
 		colors[ImGuiCol_SeparatorHovered] = ImColor(45, 45, 45, 255);
 		colors[ImGuiCol_SeparatorActive] = ImColor(55, 55, 55, 255);
-		colors[ImGuiCol_Tab] = ImColor(35, 35, 35, 255);
-		colors[ImGuiCol_TabHovered] = ImColor(65, 65, 65, 255);
-		colors[ImGuiCol_TabActive] = ImColor(45, 45, 45, 255);
-		colors[ImGuiCol_TabUnfocused] = ImColor(35, 35, 35, 255);
-		colors[ImGuiCol_TabUnfocusedActive] = ImColor(35, 35, 35, 255);
+		colors[ImGuiCol_Tab] = ImColor(0, 0, 0, 0);
+		colors[ImGuiCol_TabHovered] = ImColor(36, 36, 36, 255);
+		colors[ImGuiCol_TabActive] = ImColor(36, 36, 36, 255);
+		colors[ImGuiCol_TabUnfocused] = ImColor(0, 0, 0, 0);
+		colors[ImGuiCol_TabUnfocusedActive] = ImColor(36, 36, 36, 255);
 		colors[ImGuiCol_CheckMark] = ImColor(160, 160, 160, 255);
 	}
 }

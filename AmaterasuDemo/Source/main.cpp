@@ -59,6 +59,7 @@ namespace AmaterasuDemo
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiContext& g = *GImGui;
 		ImGuiStyle& style = ImGui::GetStyle();
+		ImGuiStyle oldStyle = style;
 
 		// Workspaces
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
@@ -76,6 +77,7 @@ namespace AmaterasuDemo
 
 		style.WindowMenuButtonPosition = ImGuiDir_Left;
 		style.FramePadding = ImVec2(8.0f, 8.0f);
+		style.WindowPadding = ImVec2(0.0f, 0.0f);
 		ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
 		{
@@ -108,19 +110,31 @@ namespace AmaterasuDemo
 
 		// Scene Editor Workspace
 		{
+			style.WindowMenuButtonPosition = ImGuiDir_Left;
+			style.FramePadding = ImVec2(8.0f, 8.0f);
+			style.WindowPadding = ImVec2(0.0f, 0.0f);
+
 			ImGui::SetNextWindowClass(&workspaceClass);
 			ImGui::Begin("SceneEditorWorkspaceWindow", (bool*)0, ImGuiDockNodeFlags_None);
 			
-			style.WindowMenuButtonPosition = ImGuiDir_None;
-			style.FramePadding = ImVec2(4.0f, 4.0f);
-			ImGui::DockSpace(ImGui::GetID("SceneEditorWorkspaceWindow"), ImVec2(0.0f, 0.0f));
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			ImVec2 p1 = ImGui::GetCursorScreenPos();
+			ImVec2 p2 = p1 + ImVec2(ImGui::GetContentRegionAvail().x + (style.WindowPadding.x * 2), 3.0f);
+			drawList->AddRectFilled(p1, p2, IM_COL32(36, 36, 36, 255));
+			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 3.0f));
 
 			ImGuiWindowClass sceneToolClass;
 			sceneToolClass.ClassId = ImHashStr("SceneToolClass");
 			sceneToolClass.DockingAllowUnclassed = false;
 
+			style.WindowMenuButtonPosition = ImGuiDir_None;
+			style.FramePadding = ImVec2(4.0f, 4.0f);
+			ImGui::DockSpace(ImGui::GetID("SceneEditorWorkspaceWindow"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None, &sceneToolClass);
+
 			// Scene Editor Viewport
 			{
+				style.WindowMenuButtonPosition = ImGuiDir_None;
+				style.FramePadding = ImVec2(4.0f, 4.0f);
 				ImGui::SetNextWindowClass(&sceneToolClass);
 				ImGui::Begin("SceneEditorViewport");
 				ImGui::End();
@@ -128,6 +142,8 @@ namespace AmaterasuDemo
 
 			// Scene Editor Hierarchy
 			{
+				style.WindowMenuButtonPosition = ImGuiDir_None;
+				style.FramePadding = ImVec2(4.0f, 4.0f);
 				ImGui::SetNextWindowClass(&sceneToolClass);
 				ImGui::Begin("SceneEditorHierarchy");
 				ImGui::End();
@@ -138,17 +154,41 @@ namespace AmaterasuDemo
 
 		// Material Workspace
 		{
+			style.WindowMenuButtonPosition = ImGuiDir_Left;
+			style.FramePadding = ImVec2(8.0f, 8.0f);
+			style.WindowPadding = ImVec2(0.0f, 0.0f);
+
 			ImGui::SetNextWindowClass(&workspaceClass);
 			ImGui::Begin("MaterialWorkspaceWindow", (bool*)0, ImGuiDockNodeFlags_None);
+
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			ImVec2 p1 = ImGui::GetCursorScreenPos();
+			ImVec2 p2 = p1 + ImVec2(ImGui::GetContentRegionAvail().x + (style.WindowPadding.x * 2), 3.0f);
+			drawList->AddRectFilled(p1, p2, IM_COL32(36, 36, 36, 255));
+			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 3.0f));
+
 			ImGui::End();
 		}
 
 		// Scripting Workspace
 		{
+			style.WindowMenuButtonPosition = ImGuiDir_Left;
+			style.FramePadding = ImVec2(8.0f, 8.0f);
+			style.WindowPadding = ImVec2(0.0f, 0.0f);
+
 			ImGui::SetNextWindowClass(&workspaceClass);
 			ImGui::Begin("ScriptingWorkspaceWindow", (bool*)0, ImGuiDockNodeFlags_None);
+
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			ImVec2 p1 = ImGui::GetCursorScreenPos();
+			ImVec2 p2 = p1 + ImVec2(ImGui::GetContentRegionAvail().x + (style.WindowPadding.x * 2), 3.0f);
+			drawList->AddRectFilled(p1, p2, IM_COL32(36, 36, 36, 255));
+			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 3.0f));
+
 			ImGui::End();
 		}
+
+		style = oldStyle;
 
 		return;
 
