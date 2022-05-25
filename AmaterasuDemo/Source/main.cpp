@@ -54,7 +54,7 @@ namespace AmaterasuDemo
 	{
 		Application::ImGuiRender();
 
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiContext& g = *GImGui;
@@ -78,7 +78,38 @@ namespace AmaterasuDemo
 		style.WindowMenuButtonPosition = ImGuiDir_Left;
 		style.FramePadding = ImVec2(8.0f, 8.0f);
 		style.WindowPadding = ImVec2(0.0f, 0.0f);
-		ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
+
+		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+			const ImGuiWindowClass* window_class = &workspaceClass;
+
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowViewport(viewport->ID);
+
+			ImGuiWindowFlags host_window_flags = 0;
+			host_window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
+			host_window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+			if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+				host_window_flags |= ImGuiWindowFlags_NoBackground;
+
+			char label[32];
+			ImFormatString(label, IM_ARRAYSIZE(label), "DockSpaceViewport_%08X", viewport->ID);
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::Begin(label, NULL, host_window_flags);
+			ImGui::PopStyleVar(3);
+			
+			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 2.0f));
+
+			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
+			ImGui::End();
+		}
+		// ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
 		{
 			int windowX, windowY = 0;
@@ -109,48 +140,7 @@ namespace AmaterasuDemo
 		}
 
 		// Scene Editor Workspace
-		{
-			style.WindowMenuButtonPosition = ImGuiDir_Left;
-			style.FramePadding = ImVec2(8.0f, 8.0f);
-			style.WindowPadding = ImVec2(0.0f, 0.0f);
-
-			ImGui::SetNextWindowClass(&workspaceClass);
-			ImGui::Begin("SceneEditorWorkspaceWindow", (bool*)0, ImGuiDockNodeFlags_None);
-			
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ImVec2 p1 = ImGui::GetCursorScreenPos();
-			ImVec2 p2 = p1 + ImVec2(ImGui::GetContentRegionAvail().x + (style.WindowPadding.x * 2), 3.0f);
-			drawList->AddRectFilled(p1, p2, IM_COL32(36, 36, 36, 255));
-			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 3.0f));
-
-			ImGuiWindowClass sceneToolClass;
-			sceneToolClass.ClassId = ImHashStr("SceneToolClass");
-			sceneToolClass.DockingAllowUnclassed = false;
-
-			style.WindowMenuButtonPosition = ImGuiDir_None;
-			style.FramePadding = ImVec2(4.0f, 4.0f);
-			ImGui::DockSpace(ImGui::GetID("SceneEditorWorkspaceWindow"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None, &sceneToolClass);
-
-			// Scene Editor Viewport
-			{
-				style.WindowMenuButtonPosition = ImGuiDir_None;
-				style.FramePadding = ImVec2(4.0f, 4.0f);
-				ImGui::SetNextWindowClass(&sceneToolClass);
-				ImGui::Begin("SceneEditorViewport");
-				ImGui::End();
-			}
-
-			// Scene Editor Hierarchy
-			{
-				style.WindowMenuButtonPosition = ImGuiDir_None;
-				style.FramePadding = ImVec2(4.0f, 4.0f);
-				ImGui::SetNextWindowClass(&sceneToolClass);
-				ImGui::Begin("SceneEditorHierarchy");
-				ImGui::End();
-			}
-
-			ImGui::End();
-		}
+		m_Workspace1.Render();
 
 		// Material Workspace
 		{
@@ -249,7 +239,6 @@ namespace AmaterasuDemo
 			glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
 		}
 
-		m_Workspace1.Render();
 
 		m_NodeGraph.Render();
 
