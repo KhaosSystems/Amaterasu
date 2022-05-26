@@ -1,29 +1,36 @@
 #include "Tool.h"
 
+#include "Workspace.h"
+
+#include <iostream>
+
 namespace AmaterasuDemo
 {
-	Tool::Tool(const std::string& name)
-		: m_Name(name)
+    ITool::ITool(const std::string& name, const std::string& displayName, const std::string& workspaceTypeName)
+        : m_Name(name), m_DisplayName(displayName), m_WorkspaceTypeName(workspaceTypeName)
 	{
+        std::cout << m_Name << std::endl;
+        std::cout << m_DisplayName << std::endl;
 	}
 
-	void Tool::Render()
+    void ITool::Render()
 	{
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImGuiStyle oldStyle = style;
+        ImGuiStyle& style = ImGui::GetStyle();
+        ImGuiStyle oldStyle = style;
 
-		ImGuiWindowClass sceneToolClass;
-		sceneToolClass.ClassId = ImHashStr("SceneToolClass");
-		sceneToolClass.DockingAllowUnclassed = false;
+        ImGuiWindowClass toolWindowClass{};
+        toolWindowClass.ClassId = ImHashStr(std::string("Node Graph Demo Workspace###WindowClass_" + m_WorkspaceTypeName).c_str());
+        toolWindowClass.DockingAllowUnclassed = false;
 
-		style.WindowMenuButtonPosition = ImGuiDir_None;
-		style.FramePadding = ImVec2(4.0f, 4.0f);
+        style.WindowMenuButtonPosition = ImGuiDir_None;
+        style.FramePadding = ImVec2(4.0f, 4.0f);
 
-		ImGui::SetNextWindowClass(&sceneToolClass);
-		ImGui::Begin(m_Name.c_str());
+        ImGui::SetNextWindowClass(&toolWindowClass);
+        std::string windowName = m_DisplayName + "###ToolWindow_" + m_Name;
+        ImGui::Begin(windowName.c_str());
 
-		ImGui::End();
+        ImGui::End();
 
-		style = oldStyle;
+        style = oldStyle;
 	}
 }

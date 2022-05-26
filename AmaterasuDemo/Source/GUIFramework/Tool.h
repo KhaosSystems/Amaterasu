@@ -4,18 +4,22 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#include <concepts>
 #include <string>
 
 namespace AmaterasuDemo
 {
-    class Tool
-    {
-    public:
-        Tool(const std::string& name);
+    class ITool
+	{
+    public: 
+        ITool(const std::string& name, const std::string& displayName, const std::string& workspaceTypeName);
 
         virtual void Render();
 
-    private:
+    protected:
+        
         const std::string m_Name;
-    };
+        const std::string m_DisplayName;
+        const std::string m_WorkspaceTypeName;
+	};
 }
