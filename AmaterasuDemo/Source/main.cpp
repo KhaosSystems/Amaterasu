@@ -18,7 +18,7 @@
 
 #include "NodeGraph/NodeGraph.h"
 
-#include "GUI.h"
+#include "GUIFramework/Workspace.h"
 
 namespace AmaterasuDemo
 {
@@ -34,10 +34,11 @@ namespace AmaterasuDemo
 		NodeGraph m_NodeGraph;
 
 		Workspace m_Workspace1;
+		Workspace m_Workspace2;
 	};
 
 	AmaterasuDemoApplication::AmaterasuDemoApplication()
-		: Amaterasu::Application("Amaterasu Demo")
+		: Amaterasu::Application("Amaterasu Demo"), m_Workspace1(Workspace("TestWorkspace1")), m_Workspace2(Workspace("TestWorkspace2"))
 	{
 		m_NodeGraph.Initialize();
 		std::cout << "called2" << std::endl;
@@ -141,42 +142,7 @@ namespace AmaterasuDemo
 
 		// Scene Editor Workspace
 		m_Workspace1.Render();
-
-		// Material Workspace
-		{
-			style.WindowMenuButtonPosition = ImGuiDir_Left;
-			style.FramePadding = ImVec2(8.0f, 8.0f);
-			style.WindowPadding = ImVec2(0.0f, 0.0f);
-
-			ImGui::SetNextWindowClass(&workspaceClass);
-			ImGui::Begin("MaterialWorkspaceWindow", (bool*)0, ImGuiDockNodeFlags_None);
-
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ImVec2 p1 = ImGui::GetCursorScreenPos();
-			ImVec2 p2 = p1 + ImVec2(ImGui::GetContentRegionAvail().x + (style.WindowPadding.x * 2), 3.0f);
-			drawList->AddRectFilled(p1, p2, IM_COL32(36, 36, 36, 255));
-			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 3.0f));
-
-			ImGui::End();
-		}
-
-		// Scripting Workspace
-		{
-			style.WindowMenuButtonPosition = ImGuiDir_Left;
-			style.FramePadding = ImVec2(8.0f, 8.0f);
-			style.WindowPadding = ImVec2(0.0f, 0.0f);
-
-			ImGui::SetNextWindowClass(&workspaceClass);
-			ImGui::Begin("ScriptingWorkspaceWindow", (bool*)0, ImGuiDockNodeFlags_None);
-
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ImVec2 p1 = ImGui::GetCursorScreenPos();
-			ImVec2 p2 = p1 + ImVec2(ImGui::GetContentRegionAvail().x + (style.WindowPadding.x * 2), 3.0f);
-			drawList->AddRectFilled(p1, p2, IM_COL32(36, 36, 36, 255));
-			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 3.0f));
-
-			ImGui::End();
-		}
+		m_Workspace2.Render();
 
 		style = oldStyle;
 
