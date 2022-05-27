@@ -40,7 +40,6 @@ namespace AmaterasuDemo
 
 			std::unique_ptr<ToolType> newTool = std::make_unique<ToolType>();
 			assert(newTool->GetWorkspaceTypeInfo() == typeid(WorkspaceType));
-
 			m_Tools.push_back(std::unique_ptr<ITool>{static_cast<ITool*>(newTool.release())});
 		}
 
