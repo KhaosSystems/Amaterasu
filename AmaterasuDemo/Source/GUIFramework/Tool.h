@@ -6,6 +6,7 @@
 
 #include <concepts>
 #include <string>
+#include <typeinfo>
 #include <iostream>
 
 namespace AmaterasuDemo
@@ -14,14 +15,15 @@ namespace AmaterasuDemo
     {
     public:
         virtual void Render() = 0;
+        virtual const std::type_info& GetWorkspaceTypeInfo() const = 0;
     };
 
-    template<typename WorkspaceT, typename ToolT>
+    template<typename WorkspaceType, typename ToolType>
     class Tool : public ITool
 	{
     public:
         Tool(const std::string& displayName)
-            : m_Name(typeid(ToolT).name()), m_DisplayName(displayName), m_WorkspaceTypeName(typeid(WorkspaceT).name())
+            : m_Name(typeid(ToolType).name()), m_DisplayName(displayName), m_WorkspaceTypeName(typeid(WorkspaceType).name())
         {
         }
 
@@ -45,6 +47,8 @@ namespace AmaterasuDemo
 
             style = oldStyle;
         }
+
+        virtual const std::type_info& GetWorkspaceTypeInfo() const override { return typeid(WorkspaceType); }
 
     protected:
         const std::string m_Name;
