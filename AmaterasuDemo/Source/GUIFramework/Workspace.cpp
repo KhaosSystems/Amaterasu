@@ -4,10 +4,11 @@
 
 #include <cstdio>
 #include <format>
+#include <iostream>
 
 namespace AmaterasuDemo
 {
-    Workspace::Workspace(const std::string& name, const std::string& displayName)
+    IWorkspace::IWorkspace(const std::string& name, const std::string& displayName)
         : m_Name(name), m_DisplayName(displayName)
     {
         m_ToolWindowClass = ImGuiWindowClass();
@@ -15,12 +16,12 @@ namespace AmaterasuDemo
 		m_ToolWindowClass.DockingAllowUnclassed = false;
     }
 
-	void Workspace::RegisterTool(ITool* tool)
+	void IWorkspace::RegisterTool(ITool* tool)
 	{
 		m_Tools.push_back(tool);
 	}
 
-    void Workspace::Render()
+    void IWorkspace::Render()
     {
         ImGuiStyle& style = ImGui::GetStyle();
 		ImGuiStyle oldStyle = style;

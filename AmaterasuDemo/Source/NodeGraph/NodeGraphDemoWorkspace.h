@@ -2,16 +2,11 @@
 
 #include "GUIFramework/Workspace.h"
 
-#include "NodeGraphViewportTool.h"
-
 namespace AmaterasuDemo
 {
-    class NodeGraphDemoWorkspace : public Workspace
+    class NodeGraphDemoWorkspace : public Workspace<NodeGraphDemoWorkspace>
     {
     public:
         NodeGraphDemoWorkspace();
-
-    private:
-        NodeGraphViewportTool m_NodeGraphViewportTool;
     };
 }

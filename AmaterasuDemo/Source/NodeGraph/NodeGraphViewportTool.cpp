@@ -5,7 +5,7 @@
 namespace AmaterasuDemo
 {
     NodeGraphViewportTool::NodeGraphViewportTool()
-        : ITool("NodeGraphViewport", "Node Graph Viewport Tool", "NodeGraphDemoWorkspace")
+        : Tool<NodeGraphDemoWorkspace, NodeGraphViewportTool>("Node Graph Viewport Tool")
     {
     }
 }

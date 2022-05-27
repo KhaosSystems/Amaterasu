@@ -11,7 +11,7 @@ namespace AmaterasuDemo
         m_WorkspaceWindowClass.DockingAllowUnclassed = false;
     }
 
-    void WorkspaceStack::RegisterWorkspace(Workspace* workspace)
+    void WorkspaceStack::RegisterWorkspace(IWorkspace* workspace)
     {
         m_Workspaces.push_back(workspace);
     }
@@ -70,7 +70,7 @@ namespace AmaterasuDemo
 		}
 		// ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
-        for (Workspace* workspace : m_Workspaces)
+        for (IWorkspace* workspace : m_Workspaces)
         {
             workspace->Render();
         }

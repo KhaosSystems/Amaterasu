@@ -5,8 +5,8 @@
 namespace AmaterasuDemo
 {
     NodeGraphDemoWorkspace::NodeGraphDemoWorkspace()
-        : Workspace("NodeGraphDemoWorkspace", "Node Graph Demo Workspace")
+        : Workspace<NodeGraphDemoWorkspace>("Node Graph Demo Workspace")
     {
-        m_Tools.push_back(&m_NodeGraphViewportTool);
+        m_Tools.push_back(new NodeGraphViewportTool());
     }
 }

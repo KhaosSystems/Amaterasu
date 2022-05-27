@@ -18,12 +18,12 @@ namespace AmaterasuDemo
 
         void Render();
 
-        void RegisterWorkspace(Workspace* workspace);
+        void RegisterWorkspace(IWorkspace* workspace);
         
         const ImGuiWindowClass& GetWorkspaceWindowClass() const  { return m_WorkspaceWindowClass; }
 
     private:
-        std::vector<Workspace*> m_Workspaces;
+        std::vector<IWorkspace*> m_Workspaces;
 
         ImGuiWindowClass m_WorkspaceWindowClass;
     };
