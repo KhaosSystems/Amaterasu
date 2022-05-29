@@ -14,7 +14,9 @@ namespace AmaterasuDemo
     class ITool
     {
     public:
+        virtual void BeginRender() = 0;
         virtual void Render() = 0;
+        virtual void EndRender() = 0;
         virtual const std::type_info& GetWorkspaceTypeInfo() const = 0;
     };
 
@@ -27,10 +29,15 @@ namespace AmaterasuDemo
         {
         }
 
-        virtual void Render() override
+        virtual void Initialize(WorkspaceType* workspace) 
+        {
+            m_Workspace = workspace;
+        }
+
+        virtual void BeginRender() override
         {
             ImGuiStyle& style = ImGui::GetStyle();
-            ImGuiStyle oldStyle = style;
+            m_OldStyle = style;
 
             ImGuiWindowClass toolWindowClass{};
             toolWindowClass.ClassId = ImHashStr(std::string("Node Graph Demo Workspace###WindowClass_" + m_WorkspaceTypeName).c_str());
@@ -42,17 +49,29 @@ namespace AmaterasuDemo
             ImGui::SetNextWindowClass(&toolWindowClass);
             std::string windowName = m_DisplayName + "###ToolWindow_" + m_Name;
             ImGui::Begin(windowName.c_str());
+        }
 
+        virtual void Render() override
+        {
+        }
+
+        virtual void EndRender() override
+        {
             ImGui::End();
-
-            style = oldStyle;
+            
+            ImGuiStyle& style = ImGui::GetStyle();
+            style = m_OldStyle;
         }
 
         virtual const std::type_info& GetWorkspaceTypeInfo() const override { return typeid(WorkspaceType); }
 
     protected:
+        WorkspaceType* m_Workspace;
         const std::string m_Name;
         const std::string m_DisplayName;
         const std::string m_WorkspaceTypeName;
+
+        // TMP
+        ImGuiStyle m_OldStyle;
 	};
 }

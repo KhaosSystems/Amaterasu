@@ -10,5 +10,13 @@ namespace AmaterasuDemo
     {
     public:
         NodeGraphViewportTool();
+ 
+        void Initialize(NodeGraphDemoWorkspace* workspace) override;
+        void Render() override;
+
+    private:
+        NodeGraphDemoWorkspace* m_Workspace;
+        ImVec2 m_ViewportPosition;
+        float m_ViewportZoom;
     };
 }

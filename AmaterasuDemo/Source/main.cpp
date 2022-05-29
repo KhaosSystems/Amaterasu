@@ -16,8 +16,6 @@
 #include <typeindex>
 #include <iostream>
 
-#include "NodeGraph/NodeGraph.h"
-
 #include "GUIFramework/WorkspaceStack.h"
 #include "NodeGraph/NodeGraphDemoWorkspace.h"
 
@@ -27,13 +25,10 @@ namespace AmaterasuDemo
 	{
 	public:
 		AmaterasuDemoApplication();
-		~AmaterasuDemoApplication();
 
 		void ImGuiRender() override;
 
 	private:
-		NodeGraph m_NodeGraph;
-
 		WorkspaceStack m_WorkspaceStack;
 		NodeGraphDemoWorkspace m_NodeGraphDemoWorkspace;
 	};
@@ -43,13 +38,7 @@ namespace AmaterasuDemo
 	{
 		m_WorkspaceStack.RegisterWorkspace(&m_NodeGraphDemoWorkspace);
 
-		m_NodeGraph.Initialize();
 		std::cout << "called2" << std::endl;
-	}
-
-	AmaterasuDemoApplication::~AmaterasuDemoApplication()
-	{
-		m_NodeGraph.Terminate();
 	}
 
 	ImVec2 windowMoveOffset = ImVec2(0.0f, 0.0f);
