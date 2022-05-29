@@ -71,8 +71,10 @@ namespace AmaterasuDemo
 		const float nodeHeaderVerticalMargin = 13.0f * m_ViewportZoom;
 		const float nodeFooterVerticalMargin = 13.0f * m_ViewportZoom;
 		const float nodeDividerThickness = 1.0f * m_ViewportZoom;
-		const float nodeParameterVerticalMargin = 18.0f;
-		const float nodeParameterVerticalSpaceing = 22.0f;
+		const float nodeParameterVerticalMargin = 18.0f * m_ViewportZoom;
+		const float nodeParameterVerticalSpaceing = 22.0f * m_ViewportZoom;
+		const float nodeParameterCircleRadius = 6.0f * m_ViewportZoom;
+		const float nodeParameterBorderCircleRadius = 8.0f * m_ViewportZoom;
 
 		for (INode* node : m_Workspace->MyNodeGraph.Nodes)
 		{
@@ -97,7 +99,7 @@ namespace AmaterasuDemo
 			const float nodeParametersVerticalSize = (nodeParameterVerticalMargin * 2) + (nodeParameterVerticalSpaceing * (nodeParameterCount - 1));
 
 			const ImVec2 nodePosition = (viewportNodeData->Position + m_ViewportPosition) * m_ViewportZoom + canvas_p0;
-			const ImVec2 nodeSize = ImVec2(256.0f, nodeHeaderVerticalMargin + nodeParametersVerticalSize + nodeFooterVerticalMargin) * m_ViewportZoom;
+			const ImVec2 nodeSize = ImVec2(256.0f * m_ViewportZoom, nodeHeaderVerticalMargin + nodeParametersVerticalSize + nodeFooterVerticalMargin);
 
 			// Background and border
 			drawList->AddRectFilled(nodePosition, nodePosition + nodeSize, nodeBorderColor, nodeBorderRounding, ImDrawCornerFlags_All);
@@ -111,15 +113,30 @@ namespace AmaterasuDemo
 			float displatNameFontSize = 20.0f * m_ViewportZoom;
 			ImVec2 displayNameSize = ImGui::CalcTextSize("MyTitle") * (displatNameFontSize / io.FontDefault->FontSize);
 			ImVec2 displayNamePosition = nodePosition + ImVec2((nodeSize.x - displayNameSize.x) * 0.5f, -displayNameSize.y * 1.5);
+			drawList->AddText(io.FontDefault, displatNameFontSize, displayNamePosition, IM_COL32(194, 194, 194, 194), "MyTitle");
 
+			// Input parameters
+			ImVec2 parameterCursor = nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin + nodeParameterVerticalMargin);
 			for (IInputParameter* inputParameter : node->GetInputParameters())
 			{
-				// Render input parameter
+				const ImU32 nodeParameterColor = IM_COL32(255, 255, 255, 255);
+
+				drawList->AddCircleFilled(parameterCursor, nodeParameterBorderCircleRadius, nodeBorderColor);
+				drawList->AddCircleFilled(parameterCursor, nodeParameterCircleRadius, nodeParameterColor);
+
+				parameterCursor += ImVec2(0.0f, nodeParameterVerticalSpaceing);
 			}
 
+			// Output parameters
+			parameterCursor = nodePosition + ImVec2(nodeSize.x, nodeHeaderVerticalMargin + nodeParameterVerticalMargin);
 			for (IOutputParameter* outputParameter : node->GetOutputParameters())
 			{
-				// Render output parameter
+				const ImU32 nodeParameterColor = IM_COL32(255, 255, 255, 255);
+
+				drawList->AddCircleFilled(parameterCursor, nodeParameterBorderCircleRadius, nodeBorderColor);
+				drawList->AddCircleFilled(parameterCursor, nodeParameterCircleRadius, nodeParameterColor);
+
+				parameterCursor += ImVec2(0.0f, nodeParameterVerticalSpaceing);
 			}
 		}
 	}
