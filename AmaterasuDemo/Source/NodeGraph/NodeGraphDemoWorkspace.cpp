@@ -10,5 +10,7 @@ namespace AmaterasuDemo
     {
         RegisterTool<NodeGraphDebugTool>();
         RegisterTool<NodeGraphViewportTool>();
+ 
+        MyNodeGraph.Nodes.push_back(new AddNode());
     }
 }
