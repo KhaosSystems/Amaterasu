@@ -10,5 +10,11 @@ namespace AmaterasuDemo
     {
     public:
         NodeGraphDebugTool();
+
+        void Initialize(NodeGraphDemoWorkspace* workspace) override;
+        void Render() override;
+    
+    private:
+        NodeGraphDemoWorkspace* m_Workspace;
     };
 }

@@ -5,7 +5,7 @@
 namespace AmaterasuDemo
 {
 	NodeGraphViewportTool::NodeGraphViewportTool()
-		: Tool<NodeGraphDemoWorkspace, NodeGraphViewportTool>("Node Graph Viewport Tool"), m_ViewportPosition(ImVec2(0.0f, 0.0f)), m_ViewportZoom(1.0f), m_DragNode(nullptr)
+		: Tool<NodeGraphDemoWorkspace, NodeGraphViewportTool>("Node Graph Viewport Tool"), m_ViewportPosition(ImVec2(0.0f, 0.0f)), m_ViewportZoom(1.0f), m_DragNode(nullptr), m_DragParameter(nullptr)
 	{
 	}
 
@@ -76,6 +76,8 @@ namespace AmaterasuDemo
 		const float nodeParameterCircleRadius = 6.0f * m_ViewportZoom;
 		const float nodeParameterBorderCircleRadius = 8.0f * m_ViewportZoom;
 
+		IParameter* hoveredParameter = nullptr;
+
 		for (INode* node : m_Workspace->MyNodeGraph.Nodes)
 		{
 			// Render node background
@@ -124,9 +126,21 @@ namespace AmaterasuDemo
 				const ImU32 nodeParameterColor = IM_COL32(255, 255, 255, 255);
 				
 				const bool isHoveringParameter = sqrt(pow(io.MousePos.x - parameterCursor.x, 2) + pow(io.MousePos.y - parameterCursor.y, 2)) < nodeParameterBorderCircleRadius;
-
+				
+				if (isHoveringParameter)
+				{
+					hoveredParameter = inputParameter;
+				}
+				
 				drawList->AddCircleFilled(parameterCursor, nodeParameterBorderCircleRadius, nodeBorderColor);
 				drawList->AddCircleFilled(parameterCursor, nodeParameterCircleRadius, nodeParameterColor);
+
+				if (isHoveringParameter && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					m_DragParameter = inputParameter;
+					m_DragInitialPosition = viewportNodeData->Position;
+					m_DragInitialMousePosition = io.MousePos;
+				}
 
 				parameterCursor += ImVec2(0.0f, nodeParameterVerticalSpaceing);
 			}
@@ -138,6 +152,11 @@ namespace AmaterasuDemo
 				const ImU32 nodeParameterColor = IM_COL32(255, 255, 255, 255);
 				
 				const bool isHoveringParameter = sqrt(pow(io.MousePos.x - parameterCursor.x, 2) + pow(io.MousePos.y - parameterCursor.y, 2)) < nodeParameterBorderCircleRadius;
+				
+				if (isHoveringParameter)
+				{
+					hoveredParameter = outputParameter;
+				}
 
 				drawList->AddCircleFilled(parameterCursor, nodeParameterBorderCircleRadius, nodeBorderColor);
 				drawList->AddCircleFilled(parameterCursor, nodeParameterCircleRadius, nodeParameterColor);
@@ -145,22 +164,41 @@ namespace AmaterasuDemo
 				parameterCursor += ImVec2(0.0f, nodeParameterVerticalSpaceing);
 			}
 
-			if (isHoveringNode && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			if (isHoveringNode && m_DragParameter == nullptr && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
 				m_DragNode = node;
-				m_DragInitialNodePosition = viewportNodeData->Position;
+				m_DragInitialPosition = viewportNodeData->Position;
 				m_DragInitialMousePosition = io.MousePos;
 			}
 
-			if (m_DragNode != nullptr)
+			if (m_DragNode == node)
 			{
-				viewportNodeData->Position = m_DragInitialNodePosition - ((m_DragInitialMousePosition - io.MousePos) / m_ViewportZoom);
+				viewportNodeData->Position = m_DragInitialPosition - ((m_DragInitialMousePosition - io.MousePos) / m_ViewportZoom);
 			}
+		}
+
+		if (m_DragParameter != nullptr)
+		{
+			ImVec2 start = m_ViewportNodeData[m_DragNode].Position * m_ViewportZoom;
+			ImVec2 end = io.MousePos;
+			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 6);
+			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 2);
 		}
 	
 		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 		{
+			if (m_DragParameter != nullptr)
+			{
+				IOutputParameter* hoveredOutputParameter = reinterpret_cast<IOutputParameter*>(hoveredParameter);
+				if (hoveredOutputParameter)
+				{
+					std::cout << "test" << std::endl;
+					m_DragParameter->Connect(hoveredOutputParameter);
+				}
+			}
+
 			m_DragNode = nullptr;
+			m_DragParameter = nullptr;
 		}
 	}
 }

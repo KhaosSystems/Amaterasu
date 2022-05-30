@@ -1,21 +1,67 @@
 #include <vector>
 #include <assert.h>
+#include <string>
+#include <typeinfo>
 
 namespace AmaterasuDemo
 {
-	class IOutputParameter {};
-	class IInputParameter {};
+	template<typename T>
+	class IncrementalIdentifier
+	{
+	public:
+		IncrementalIdentifier()
+			: m_IncrementalIdentifier(s_Counter)
+		{
+			s_Counter++;
+		}
+
+		std::string ToString() const
+		{
+			return std::to_string(m_IncrementalIdentifier);
+		}
+
+	private:
+		const uint32_t m_IncrementalIdentifier;
+		static uint32_t s_Counter;
+	};
+	
+	template<typename T>
+	uint32_t IncrementalIdentifier<T>::s_Counter = 0;
+
+	typedef IncrementalIdentifier<class INode> NodeIdentifier;
+
+	class IParameter
+	{
+	public:
+		virtual const std::type_info& GetType() const = 0;
+	};
+
+	class IInputParameter : public IParameter
+	{
+	public:
+		virtual void Connect(class IOutputParameter* outputParameter) = 0;
+	};
+
+	class IOutputParameter : public IParameter
+	{
+	public:
+		virtual void Connect(IInputParameter* inputParameter) = 0;
+	};
 
 	class INode
 	{
 	public:
+		INode() : m_Identifier() {}
+
 		std::vector<IInputParameter*> GetInputParameters() const { return m_InputParameters; }
 		std::vector<IOutputParameter*> GetOutputParameters() const { return m_OutputParameters; }
 
+		const NodeIdentifier GetIdentifier() { return m_Identifier; }
 		void AppendInputParameter(IInputParameter* inputParameter) { m_InputParameters.push_back(inputParameter); }
 		void AppendOutputParameter(IOutputParameter* outputParameter) { m_OutputParameters.push_back(outputParameter); }
 
 	private:
+		const NodeIdentifier m_Identifier;
 		std::vector<IInputParameter*> m_InputParameters;
 		std::vector<IOutputParameter*> m_OutputParameters;
 	};
@@ -32,7 +78,9 @@ namespace AmaterasuDemo
 
 		inline void Set(T newData) { m_Data = newData; }
 		inline const T& Get() { return m_Data; }
-		void Connect(InputParameter<T>& inputParameter) { inputParameter.Connect(this); }
+
+		virtual void Connect(IInputParameter* inputParameter) override { inputParameter->Connect(this); }
+		virtual const std::type_info& GetType() const override { return typeid(OutputParameter<T>); }
 
 	private:
 		T m_Data;
@@ -45,7 +93,15 @@ namespace AmaterasuDemo
 		InputParameter(INode* node) : m_Data(nullptr) { node->AppendInputParameter(this); }
 
 		inline const T& Get() { assert(m_Data != nullptr); return m_Data->Get(); }
-		void Connect(OutputParameter<T>& outputParameter) { m_Data = &outputParameter.m_Data; }
+
+		// TODO: This should properly be a reference, not a pointer.
+		virtual void Connect(IOutputParameter* outputParameter) override
+		{
+			assert(outputParameter != nullptr);
+			assert(GetType() == outputParameter->GetType());
+			m_Data = static_cast<OutputParameter<T>*>(outputParameter);
+		}
+		virtual const std::type_info& GetType() const override { return typeid(InputParameter<T>); }
 
 	private:
 		OutputParameter<T>* m_Data;
