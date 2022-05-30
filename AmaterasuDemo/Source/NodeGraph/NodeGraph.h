@@ -44,11 +44,11 @@ namespace AmaterasuDemo
 	public:
 		InputParameter(INode* node) : m_Data(nullptr) { node->AppendInputParameter(this); }
 
-		inline const T& Get() { assert(m_Data != nullptr); return *m_Data; }
+		inline const T& Get() { assert(m_Data != nullptr); return m_Data->Get(); }
 		void Connect(OutputParameter<T>& outputParameter) { m_Data = &outputParameter.m_Data; }
 
 	private:
-		T* m_Data;
+		OutputParameter<T>* m_Data;
 	};
 
 	class NodeGraph

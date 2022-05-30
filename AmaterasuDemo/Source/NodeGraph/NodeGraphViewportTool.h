@@ -27,5 +27,8 @@ namespace AmaterasuDemo
 
         ImVec2 m_ViewportPosition;
         float m_ViewportZoom;
+        INode* m_DragNode;
+        ImVec2 m_DragInitialNodePosition;
+        ImVec2 m_DragInitialMousePosition;
     };
 }
