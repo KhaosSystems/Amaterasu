@@ -1,4 +1,4 @@
-#include "NodeGraph.h"
+#include "NodeGraph2.h"
 
 #include <iostream>
 #include <algorithm>
@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream> 
+
 namespace AmaterasuDemo
 {
 	SceneNode::SceneNode(SceneNode* parent)

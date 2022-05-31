@@ -9,37 +9,47 @@ namespace AmaterasuDemo
 	class IncrementalIdentifier
 	{
 	public:
-		IncrementalIdentifier()
-			: m_IncrementalIdentifier(s_Counter)
-		{
-			s_Counter++;
-		}
+		IncrementalIdentifier() : m_Identifier(s_Counter) { s_Counter++; }
+		IncrementalIdentifier(uint32_t identifier) : m_Identifier(identifier) {}
 
-		std::string ToString() const
-		{
-			return std::to_string(m_IncrementalIdentifier);
-		}
+		bool operator==(const IncrementalIdentifier<T>& other) const { return this->m_Identifier == other.m_Identifier; }
+		bool operator<(const IncrementalIdentifier<T>& other) const noexcept { return this->m_Identifier < other.m_Identifier; }
+
+		std::string ToString() const { return std::to_string(m_Identifier); }
+
+	public:
+		const static IncrementalIdentifier<T> NullIdentifier;
 
 	private:
-		const uint32_t m_IncrementalIdentifier;
+		uint32_t m_Identifier;
+
 		static uint32_t s_Counter;
 	};
 	
-	template<typename T>
-	uint32_t IncrementalIdentifier<T>::s_Counter = 0;
+	template<typename T> const IncrementalIdentifier<T> IncrementalIdentifier<T>::NullIdentifier = IncrementalIdentifier<T>(0);
+	template<typename T> uint32_t IncrementalIdentifier<T>::s_Counter = 1;
 
 	typedef IncrementalIdentifier<class INode> NodeIdentifier;
+	typedef IncrementalIdentifier<class IParameter> ParameterIdentifier;
 
 	class IParameter
 	{
 	public:
+		IParameter() : m_Identifier() {}
+
+		const ParameterIdentifier GetIdentifier() { return m_Identifier; }
+
 		virtual const std::type_info& GetType() const = 0;
+
+	private:
+		const ParameterIdentifier m_Identifier;
 	};
 
 	class IInputParameter : public IParameter
 	{
 	public:
 		virtual void Connect(class IOutputParameter* outputParameter) = 0;
+		virtual IOutputParameter* GetConnectedParameter() const = 0;
 	};
 
 	class IOutputParameter : public IParameter
@@ -80,7 +90,7 @@ namespace AmaterasuDemo
 		inline const T& Get() { return m_Data; }
 
 		virtual void Connect(IInputParameter* inputParameter) override { inputParameter->Connect(this); }
-		virtual const std::type_info& GetType() const override { return typeid(OutputParameter<T>); }
+		virtual const std::type_info& GetType() const override { return typeid(T); }
 
 	private:
 		T m_Data;
@@ -101,7 +111,9 @@ namespace AmaterasuDemo
 			assert(GetType() == outputParameter->GetType());
 			m_Data = static_cast<OutputParameter<T>*>(outputParameter);
 		}
-		virtual const std::type_info& GetType() const override { return typeid(InputParameter<T>); }
+		virtual IOutputParameter* GetConnectedParameter() const override { return m_Data; }
+
+		virtual const std::type_info& GetType() const override { return typeid(T); }
 
 	private:
 		OutputParameter<T>* m_Data;

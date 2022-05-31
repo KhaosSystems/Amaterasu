@@ -14,4 +14,10 @@ namespace AmaterasuDemo
         MyNodeGraph.Nodes.push_back(new AddNode());
         MyNodeGraph.Nodes.push_back(new AddNode());
     }
+
+    void NodeGraphDemoWorkspace::Render()
+    {
+        Workspace::Render();
+    }
+
 }

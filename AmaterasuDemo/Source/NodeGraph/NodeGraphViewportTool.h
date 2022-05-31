@@ -8,6 +8,11 @@
 
 namespace AmaterasuDemo
 {
+    struct ViewportParameterData
+    {
+        ImVec2 Position;
+    };
+
     struct ViewportNodeData
     {
         ImVec2 Position;
@@ -23,7 +28,8 @@ namespace AmaterasuDemo
 
     private:
         NodeGraphDemoWorkspace* m_Workspace;
-        std::map<INode*, ViewportNodeData> m_ViewportNodeData;
+        std::map<NodeIdentifier, ViewportNodeData> m_ViewportNodeData;
+        std::map<ParameterIdentifier, ViewportParameterData> m_ViewportParameterData;
 
         ImVec2 m_ViewportPosition;
         float m_ViewportZoom;

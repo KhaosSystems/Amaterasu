@@ -18,6 +18,7 @@
 
 #include "GUIFramework/WorkspaceStack.h"
 #include "NodeGraph/NodeGraphDemoWorkspace.h"
+#include "ActionSearchTool.h"
 
 namespace AmaterasuDemo
 {
@@ -31,10 +32,13 @@ namespace AmaterasuDemo
 	private:
 		WorkspaceStack m_WorkspaceStack;
 		NodeGraphDemoWorkspace m_NodeGraphDemoWorkspace;
+
+		ActionSearchTool m_ActionSearchTool;
+		bool m_ShowActionSearchTool;
 	};
 
 	AmaterasuDemoApplication::AmaterasuDemoApplication()
-		: Amaterasu::Application("Amaterasu Demo"), m_WorkspaceStack(), m_NodeGraphDemoWorkspace()
+		: Amaterasu::Application("Amaterasu Demo"), m_WorkspaceStack(), m_NodeGraphDemoWorkspace(), m_ActionSearchTool(), m_ShowActionSearchTool(false)
 	{
 		m_WorkspaceStack.RegisterWorkspace(&m_NodeGraphDemoWorkspace);
 
@@ -78,6 +82,9 @@ namespace AmaterasuDemo
 		}
 
 		m_WorkspaceStack.Render();
+
+		if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) m_ShowActionSearchTool = !m_ShowActionSearchTool;
+		if (m_ShowActionSearchTool) m_ActionSearchTool.Render();
 	}
 }
 

@@ -11,6 +11,8 @@ namespace AmaterasuDemo
     public:
         NodeGraphDemoWorkspace();
 
+        virtual void Render() override;
+
     public:
         NodeGraph MyNodeGraph;
     };

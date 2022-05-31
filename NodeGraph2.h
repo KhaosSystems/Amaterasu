@@ -56,9 +56,9 @@ namespace AmaterasuDemo
 		std::deque<SceneNode*> m_Children;
 	};
 
-	typedef class Node* (*myfunc)(class NodeGraph*);
+	typedef class Node* (*myfunc)(class NodeGraph2*);
 
-	class NodeGraph : public SceneNode
+	class NodeGraph2 : public SceneNode
 	{
 	public:
 		NodeGraph();

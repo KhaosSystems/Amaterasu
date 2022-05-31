@@ -16,11 +16,13 @@ namespace AmaterasuDemo
 
 	void NodeGraphViewportTool::Render()
 	{
+		// TODO: Look at ImGui::BeginChild()
+
 		ImGui::ShowDemoWindow();
 
 		ImGuiIO& io = ImGui::GetIO();
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		
+
 		ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
 		ImVec2 canvas_sz = ImVec2(ImGui::GetContentRegionAvail().x, std::max(ImGui::GetContentRegionAvail().y, 50.0f));
 		ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
@@ -75,6 +77,8 @@ namespace AmaterasuDemo
 		const float nodeParameterVerticalSpaceing = 22.0f * m_ViewportZoom;
 		const float nodeParameterCircleRadius = 6.0f * m_ViewportZoom;
 		const float nodeParameterBorderCircleRadius = 8.0f * m_ViewportZoom;
+		const float connectionThickness = 6.0f * m_ViewportZoom;
+		const float connectionColorThickness = 2.0f * m_ViewportZoom;
 
 		IParameter* hoveredParameter = nullptr;
 
@@ -83,14 +87,14 @@ namespace AmaterasuDemo
 			// Render node background
 			ViewportNodeData* viewportNodeData = nullptr;
 
-			std::map<INode*, ViewportNodeData>::iterator nodeViewportDataIterator = m_ViewportNodeData.find(node);
+			std::map<NodeIdentifier, ViewportNodeData>::iterator nodeViewportDataIterator = m_ViewportNodeData.find(node->GetIdentifier());
 			if (nodeViewportDataIterator == m_ViewportNodeData.end())
 			{
 				ViewportNodeData newViewportNodeData;
 				newViewportNodeData.Position = ImVec2(0.0f, 0.0f);
-				m_ViewportNodeData[node] = newViewportNodeData;
+				m_ViewportNodeData[node->GetIdentifier()] = newViewportNodeData;
 
-				viewportNodeData = &m_ViewportNodeData[node];
+				viewportNodeData = &m_ViewportNodeData[node->GetIdentifier()];
 			}
 			else
 			{
@@ -108,7 +112,7 @@ namespace AmaterasuDemo
 			// Background and border
 			drawList->AddRectFilled(nodePosition, nodePosition + nodeSize, nodeBorderColor, nodeBorderRounding, ImDrawCornerFlags_All);
 			drawList->AddRectFilled(nodePosition + nodeBorderSize, nodePosition + nodeSize - nodeBorderSize, nodeBackgroundColor, nodeBorderRounding, ImDrawCornerFlags_All);
-			
+
 			// Dividers
 			drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin), nodePosition + ImVec2(nodeSize.x, nodeHeaderVerticalMargin + nodeDividerThickness), nodeBorderColor);
 			drawList->AddRectFilled(nodePosition + ImVec2(0.0f, nodeSize.y - nodeHeaderVerticalMargin - nodeDividerThickness), nodePosition + ImVec2(nodeSize.x, nodeSize.y - nodeHeaderVerticalMargin), nodeBorderColor);
@@ -123,15 +127,38 @@ namespace AmaterasuDemo
 			ImVec2 parameterCursor = nodePosition + ImVec2(0.0f, nodeHeaderVerticalMargin + nodeParameterVerticalMargin);
 			for (IInputParameter* inputParameter : node->GetInputParameters())
 			{
+				ViewportParameterData* viewportParameterData = nullptr;
+				std::map<ParameterIdentifier, ViewportParameterData>::iterator viewportParameterDataIterator = m_ViewportParameterData.find(inputParameter->GetIdentifier());
+				if (viewportParameterDataIterator == m_ViewportParameterData.end())
+				{
+					m_ViewportParameterData[inputParameter->GetIdentifier()].Position = ImVec2(0.0f, 0.0f);
+					viewportParameterData = &m_ViewportParameterData[inputParameter->GetIdentifier()];
+				}
+				else
+				{
+					viewportParameterData = &viewportParameterDataIterator->second;
+				}
+
+				viewportParameterData->Position = parameterCursor; // TODO: Use this for drawing, only update on move.
+
 				const ImU32 nodeParameterColor = IM_COL32(255, 255, 255, 255);
-				
+				IOutputParameter* connectedParameter = inputParameter->GetConnectedParameter();
+
 				const bool isHoveringParameter = sqrt(pow(io.MousePos.x - parameterCursor.x, 2) + pow(io.MousePos.y - parameterCursor.y, 2)) < nodeParameterBorderCircleRadius;
-				
+
 				if (isHoveringParameter)
 				{
 					hoveredParameter = inputParameter;
 				}
-				
+
+				if (connectedParameter)
+				{
+					ImVec2 start = viewportParameterData->Position;
+					ImVec2 end = m_ViewportParameterData[connectedParameter->GetIdentifier()].Position;
+					drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, nodeBorderColor, connectionThickness);
+					drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, nodeParameterColor, connectionColorThickness);
+				}
+
 				drawList->AddCircleFilled(parameterCursor, nodeParameterBorderCircleRadius, nodeBorderColor);
 				drawList->AddCircleFilled(parameterCursor, nodeParameterCircleRadius, nodeParameterColor);
 
@@ -149,10 +176,24 @@ namespace AmaterasuDemo
 			parameterCursor = nodePosition + ImVec2(nodeSize.x, nodeHeaderVerticalMargin + nodeParameterVerticalMargin);
 			for (IOutputParameter* outputParameter : node->GetOutputParameters())
 			{
+				ViewportParameterData* viewportParameterData = nullptr;
+				std::map<ParameterIdentifier, ViewportParameterData>::iterator viewportParameterDataIterator = m_ViewportParameterData.find(outputParameter->GetIdentifier());
+				if (viewportParameterDataIterator == m_ViewportParameterData.end())
+				{
+					m_ViewportParameterData[outputParameter->GetIdentifier()].Position = ImVec2(0.0f, 0.0f);
+					viewportParameterData = &m_ViewportParameterData[outputParameter->GetIdentifier()];
+				}
+				else
+				{
+					viewportParameterData = &viewportParameterDataIterator->second;
+				}
+
+				viewportParameterData->Position = parameterCursor; // TODO: Use this for drawing, only update on move.
+
 				const ImU32 nodeParameterColor = IM_COL32(255, 255, 255, 255);
-				
+
 				const bool isHoveringParameter = sqrt(pow(io.MousePos.x - parameterCursor.x, 2) + pow(io.MousePos.y - parameterCursor.y, 2)) < nodeParameterBorderCircleRadius;
-				
+
 				if (isHoveringParameter)
 				{
 					hoveredParameter = outputParameter;
@@ -179,12 +220,12 @@ namespace AmaterasuDemo
 
 		if (m_DragParameter != nullptr)
 		{
-			ImVec2 start = m_ViewportNodeData[m_DragNode].Position * m_ViewportZoom;
+			ImVec2 start = m_ViewportParameterData[m_DragParameter->GetIdentifier()].Position * m_ViewportZoom;
 			ImVec2 end = io.MousePos;
 			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 6);
 			drawList->AddBezierCurve(start, ImVec2((end.x * 0.6) + (start.x * 0.4), start.y), ImVec2((end.x * 0.4) + (start.x * 0.6), end.y), end, IM_COL32(51, 51, 51, 255), 2);
 		}
-	
+
 		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 		{
 			if (m_DragParameter != nullptr)
@@ -192,7 +233,6 @@ namespace AmaterasuDemo
 				IOutputParameter* hoveredOutputParameter = reinterpret_cast<IOutputParameter*>(hoveredParameter);
 				if (hoveredOutputParameter)
 				{
-					std::cout << "test" << std::endl;
 					m_DragParameter->Connect(hoveredOutputParameter);
 				}
 			}
