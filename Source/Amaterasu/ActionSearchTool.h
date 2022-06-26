@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-namespace AmaterasuDemo
+namespace Amaterasu
 {
 	struct Action
 	{

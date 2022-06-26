@@ -7,7 +7,7 @@
 #include <array>
 #include <iostream>
 
-namespace AmaterasuDemo
+namespace Amaterasu
 {
 	void ActionSearchTool::Render()
 	{

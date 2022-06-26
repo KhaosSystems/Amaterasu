@@ -2,7 +2,7 @@
 
 #include <format>
 
-namespace AmaterasuDemo
+namespace Amaterasu
 {
     WorkspaceStack::WorkspaceStack()
     {

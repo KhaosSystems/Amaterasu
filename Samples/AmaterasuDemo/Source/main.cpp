@@ -16,9 +16,7 @@
 #include <typeindex>
 #include <iostream>
 
-#include "GUIFramework/WorkspaceStack.h"
 #include "NodeGraph/NodeGraphDemoWorkspace.h"
-#include "ActionSearchTool.h"
 
 namespace AmaterasuDemo
 {
@@ -27,58 +25,14 @@ namespace AmaterasuDemo
 	public:
 		AmaterasuDemoApplication();
 
-		void ImGuiRender() override;
-
 	private:
-		WorkspaceStack m_WorkspaceStack;
 		NodeGraphDemoWorkspace m_NodeGraphDemoWorkspace;
 	};
 
 	AmaterasuDemoApplication::AmaterasuDemoApplication()
-		: Amaterasu::Application("Amaterasu Demo"), m_WorkspaceStack(), m_NodeGraphDemoWorkspace()
+		: Amaterasu::Application("Amaterasu Demo"), m_NodeGraphDemoWorkspace()
 	{
 		m_WorkspaceStack.RegisterWorkspace(&m_NodeGraphDemoWorkspace);
-
-		std::cout << "called2" << std::endl;
-	}
-
-	ImVec2 windowMoveOffset = ImVec2(0.0f, 0.0f);
-	bool isDraggingWindow = false;
-	void AmaterasuDemoApplication::ImGuiRender()
-	{
-		Application::ImGuiRender();
-
-		ImGuiIO& io = ImGui::GetIO();
-
-		{
-			int windowX, windowY = 0;
-			glfwGetWindowPos(GetWindow(), &windowX, &windowY);
-			ImVec2 windowPos = ImVec2(windowX, windowY);
-			ImVec2 p1 = ImVec2(300.0f, 0.0f) + windowPos;
-			ImVec2 p2 = ImVec2(600.0f, 60.0f) + windowPos;
-			ImVec2 point = io.MousePos;
-
-			if (ImGui::IsMouseClicked(0))
-			{
-				if (point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y)
-				{
-					windowMoveOffset = windowPos - point;
-					isDraggingWindow = true;
-				}
-			}
-
-			if (ImGui::IsMouseReleased(0))
-			{
-				isDraggingWindow = false;
-			}
-
-			if (isDraggingWindow)
-			{
-				glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
-			}
-		}
-
-		m_WorkspaceStack.Render();
 	}
 }
 

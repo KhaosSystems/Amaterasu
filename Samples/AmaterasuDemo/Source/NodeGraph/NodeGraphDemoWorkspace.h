@@ -1,12 +1,12 @@
 #pragma once
 
-#include "GUIFramework/Workspace.h"
+#include "Amaterasu/GUIFramework/Workspace.h"
 
 #include "NodeGraph/NodeGraph.h"
 
 namespace AmaterasuDemo
 {
-    class NodeGraphDemoWorkspace : public Workspace<NodeGraphDemoWorkspace>
+    class NodeGraphDemoWorkspace : public Amaterasu::Workspace<NodeGraphDemoWorkspace>
     {
     public:
         NodeGraphDemoWorkspace();

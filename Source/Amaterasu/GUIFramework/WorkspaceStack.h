@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace AmaterasuDemo
+namespace Amaterasu
 {
     class WorkspaceStack
     {

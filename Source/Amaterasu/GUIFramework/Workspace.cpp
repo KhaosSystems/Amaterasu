@@ -6,6 +6,6 @@
 #include <format>
 #include <iostream>
 
-namespace AmaterasuDemo
+namespace Amaterasu
 {
 }

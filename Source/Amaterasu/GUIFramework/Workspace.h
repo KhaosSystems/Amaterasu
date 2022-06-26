@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Tool.h"
-#include "ActionSearchTool.h"
+#include "Amaterasu/ActionSearchTool.h"
 
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -13,7 +13,7 @@
 #include <iostream>
 #include <assert.h>
 
-namespace AmaterasuDemo
+namespace Amaterasu
 {
 	class IWorkspace
 	{

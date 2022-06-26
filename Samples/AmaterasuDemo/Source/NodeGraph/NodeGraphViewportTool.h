@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GUIFramework/Tool.h"
+#include "Amaterasu/GUIFramework/Tool.h"
 
 #include "NodeGraphDemoWorkspace.h"
 
@@ -18,7 +18,7 @@ namespace AmaterasuDemo
         ImVec2 Position;
     };
 
-    class NodeGraphViewportTool : public Tool<NodeGraphDemoWorkspace, NodeGraphViewportTool>
+    class NodeGraphViewportTool : public Amaterasu::Tool<NodeGraphDemoWorkspace, NodeGraphViewportTool>
     {
     public:
         NodeGraphViewportTool();

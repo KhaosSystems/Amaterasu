@@ -9,7 +9,7 @@
 #include <typeinfo>
 #include <iostream>
 
-namespace AmaterasuDemo
+namespace Amaterasu
 {
     class ITool
     {
