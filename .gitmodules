@@ -1,8 +1,8 @@
 [submodule "Amaterasu/Vendor/imgui"]
-	path = Amaterasu/Vendor/imgui
+	path = Vendor/imgui
 	url = https://github.com/ocornut/imgui
     branch = docking
 
 [submodule "Amaterasu/Vendor/glfw"]
-	path = Amaterasu/Vendor/glfw
+	path = Vendor/glfw
 	url = https://github.com/glfw/glfw

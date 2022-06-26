@@ -5,6 +5,7 @@
 #include <imgui_internal.h>
 
 #include <array>
+#include <iostream>
 
 namespace AmaterasuDemo
 {
@@ -27,14 +28,16 @@ namespace AmaterasuDemo
 
 		ImGui::Separator();
 
-		const char* lines[] = { "aaa1.c", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" };
 		size_t matches = 0;
-		for (int i = 0; i < std::size(lines); i++)
+		for (int i = 0; i < std::size(m_Actions); i++)
 		{
-			if (filter.PassFilter(lines[i]))
+			if (filter.PassFilter(m_Actions[i].Name.c_str()))
 			{
 				matches++;
-				ImGui::MenuItem(lines[i], "CTRL+M");
+				if (ImGui::MenuItem(m_Actions[i].Name.c_str(), "CTRL+M"))
+				{
+					m_Actions[i].Function();
+				}
 			}
 		}
 
@@ -44,5 +47,10 @@ namespace AmaterasuDemo
 		}
 
 		ImGui::End();
+	}
+
+	void ActionSearchTool::AppendAction(Action action)
+	{
+		m_Actions.push_back(action);
 	}
 }

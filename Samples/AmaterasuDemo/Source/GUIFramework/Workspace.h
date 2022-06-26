@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tool.h"
+#include "ActionSearchTool.h"
 
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -25,7 +26,7 @@ namespace AmaterasuDemo
 	{
 	public:
 		Workspace(const std::string& displayName)
-			: m_Name(typeid(WorkspaceType).name()), m_DisplayName(displayName)
+			: m_Name(typeid(WorkspaceType).name()), m_DisplayName(displayName), m_ActionSearchTool(), m_ShowActionSearchTool(false)
 		{
 			m_ToolWindowClass = ImGuiWindowClass();
 			m_ToolWindowClass.ClassId = ImHashStr(std::string(m_DisplayName + "###WindowClass_" + m_Name).c_str());
@@ -79,6 +80,9 @@ namespace AmaterasuDemo
 				tool->EndRender();
 			}
 
+			if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent)) m_ShowActionSearchTool = !m_ShowActionSearchTool;
+			if (m_ShowActionSearchTool) m_ActionSearchTool.Render();
+
 			ImGui::End();
 
 			style = oldStyle;
@@ -88,6 +92,9 @@ namespace AmaterasuDemo
 		const std::string m_Name;
 		const std::string m_DisplayName;
 		ImGuiWindowClass m_ToolWindowClass;
+
+		ActionSearchTool m_ActionSearchTool;
+		bool m_ShowActionSearchTool;
 
 		std::vector<std::unique_ptr<ITool>> m_Tools;
 	};

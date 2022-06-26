@@ -8,6 +8,9 @@ namespace AmaterasuDemo
     NodeGraphDemoWorkspace::NodeGraphDemoWorkspace()
         : Workspace<NodeGraphDemoWorkspace>("Node Graph Demo Workspace"), MyNodeGraph()
     {
+        m_ActionSearchTool.AppendAction(Action("Save", []() {}));
+        m_ActionSearchTool.AppendAction(Action("Save As...", []() {}));
+
         RegisterTool<NodeGraphDebugTool>();
         RegisterTool<NodeGraphViewportTool>();
  
