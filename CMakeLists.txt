@@ -33,5 +33,3 @@ set_property(TARGET Amaterasu PROPERTY CXX_STANDARD 20)
 
 target_include_directories(Amaterasu PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Source")
 target_link_libraries(Amaterasu glad glfw imgui opengl32)
-
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Samples")
