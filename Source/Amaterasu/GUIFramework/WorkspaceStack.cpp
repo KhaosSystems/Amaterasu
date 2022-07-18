@@ -6,20 +6,20 @@
 
 namespace Amaterasu
 {
-    WorkspaceStack::WorkspaceStack()
-    {
-        m_WorkspaceWindowClass = ImGuiWindowClass();
-        m_WorkspaceWindowClass.ClassId = ImHashStr("WorkspaceStackClass");
-        m_WorkspaceWindowClass.DockingAllowUnclassed = false;
-    }
+	WorkspaceStack::WorkspaceStack()
+	{
+		m_WorkspaceWindowClass = ImGuiWindowClass();
+		m_WorkspaceWindowClass.ClassId = ImHashStr("WorkspaceStackClass");
+		m_WorkspaceWindowClass.DockingAllowUnclassed = false;
+	}
 
-    void WorkspaceStack::RegisterWorkspace(IWorkspace* workspace)
-    {
-        m_Workspaces.push_back(workspace);
-    }
+	void WorkspaceStack::RegisterWorkspace(IWorkspace* workspace)
+	{
+		m_Workspaces.push_back(workspace);
+	}
 
-    void WorkspaceStack::Render()
-    {
+	void WorkspaceStack::Render()
+	{
 		//ImGui::ShowDemoWindow();
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiContext& g = *GImGui;
@@ -66,11 +66,9 @@ namespace Amaterasu
 			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 2.0f));
 
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
-
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
 
-			ImGuiContext* ctx = GImGui;
-			ImGuiDockNode* node = (ImGuiDockNode*)ctx->DockContext.Nodes.GetVoidPtr(dockspace_id);
+			ImGuiDockNode* node = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
 			if (node && node->TabBar)
 			{
 				ImGui::TabItemEx(node->TabBar, "X", nullptr, ImGuiTabItemFlags_Leading | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
@@ -81,11 +79,11 @@ namespace Amaterasu
 		}
 		// ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
-        for (IWorkspace* workspace : m_Workspaces)
-        {
-            workspace->Render();
-        }
+		for (IWorkspace* workspace : m_Workspaces)
+		{
+			workspace->Render();
+		}
 
-        style = oldStyle;
-    }
+		style = oldStyle;
+	}
 }
