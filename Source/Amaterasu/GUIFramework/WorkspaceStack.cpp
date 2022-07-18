@@ -79,9 +79,10 @@ namespace Amaterasu
 			ImGui::SetCursorScreenPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetContentRegionAvail().x - 95.0f, 2.0f));
 			if (ImGui::BeginTabBar("TheIdealSituation2"))
 			{
-				ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing); // TODO: Make use icon font.
-				ImGui::TabItemButton("[]", ImGuiTabItemFlags_Trailing); // TODO: Make use icon font.
-				ImGui::TabItemButton("X", ImGuiTabItemFlags_Trailing); // TODO: Make use icon font.
+				// TODO: Make use icon font.
+				if (ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing));
+				if (ImGui::TabItemButton("[]", ImGuiTabItemFlags_Trailing));
+				if (ImGui::TabItemButton("X", ImGuiTabItemFlags_Trailing));
 				ImGui::EndTabBar();
 			}
 
