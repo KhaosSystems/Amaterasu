@@ -3,6 +3,7 @@
 #include <format>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 namespace Amaterasu
 {
@@ -63,19 +64,42 @@ namespace Amaterasu
 			ImGui::Begin(label, nullptr, host_window_flags);
 			ImGui::PopStyleVar(3);
 
-			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 2.0f));
+			// Title bar
+			ImVec2 titleBarPos = ImGui::GetCursorScreenPos() + ImVec2(0.0f, 2.0f);
+			ImGui::SetCursorScreenPos(titleBarPos);
+			if (ImGui::BeginTabBar("TheIdealSituation"))
+			{
+				ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading); // TODO: Make use icon font.
+				ImGui::TabItemButton("Workspace 1");
+				ImGui::TabItemButton("Workspace 2");
+				ImGui::TabItemButton("Workspace 3");
+
+				ImGui::EndTabBar();
+			}
+			
+			ImGui::SetCursorScreenPos(titleBarPos + ImVec2(ImGui::GetContentRegionAvail().x - 96.0f, 0));
+			if (ImGui::BeginTabBar("TheIdealSituation2"))
+			{
+				ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing); // TODO: Make use icon font.
+				ImGui::TabItemButton("[]", ImGuiTabItemFlags_Trailing); // TODO: Make use icon font.
+				ImGui::TabItemButton("X", ImGuiTabItemFlags_Trailing); // TODO: Make use icon font.
+				ImGui::EndTabBar();
+			}
 
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
 
-			ImGuiDockNode* node = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
+			// Title bar
+			/*ImGuiDockNode* node = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
 			if (node && node->TabBar)
 			{
-				ImGui::TabItemEx(node->TabBar, "X", nullptr, ImGuiTabItemFlags_Leading | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
-				ImGui::TabItemEx(node->TabBar, "Trailing", nullptr, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
-			}
+				// TODO: Make use icon font.
+				ImGui::TabItemEx(node->TabBar, "K", nullptr, ImGuiTabItemFlags_Leading | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
+				ImGui::TabItemEx(node->TabBar, "+", nullptr, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
+			}*/
 
 			ImGui::End();
+
 		}
 		// ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
