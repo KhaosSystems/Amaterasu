@@ -2,6 +2,8 @@
 
 #include <format>
 
+#include <imgui.h>
+
 namespace Amaterasu
 {
     WorkspaceStack::WorkspaceStack()
@@ -34,7 +36,6 @@ namespace Amaterasu
 		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
 		window_flags |= ImGuiWindowFlags_NoNavFocus;
 
-		style.WindowMenuButtonPosition = ImGuiDir_Left;
 		style.FramePadding = ImVec2(8.0f, 8.0f);
 		style.WindowPadding = ImVec2(0.0f, 0.0f);
 
@@ -59,13 +60,22 @@ namespace Amaterasu
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			ImGui::Begin(label, NULL, host_window_flags);
+			ImGui::Begin(label, nullptr, host_window_flags);
 			ImGui::PopStyleVar(3);
 
 			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 2.0f));
 
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
+
+			ImGuiContext* ctx = GImGui;
+			ImGuiDockNode* node = (ImGuiDockNode*)ctx->DockContext.Nodes.GetVoidPtr(dockspace_id);
+			if (node && node->TabBar)
+			{
+				ImGui::TabItemEx(node->TabBar, "X", nullptr, ImGuiTabItemFlags_Leading | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
+				ImGui::TabItemEx(node->TabBar, "Trailing", nullptr, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
+			}
 
 			ImGui::End();
 		}

@@ -54,7 +54,6 @@ namespace Amaterasu
 			workspaceWindowClass.ClassId = ImHashStr("WorkspaceStackClass");
 			workspaceWindowClass.DockingAllowUnclassed = false;
 
-			style.WindowMenuButtonPosition = ImGuiDir_Left;
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 8.0f));
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 			ImGui::SetNextWindowClass(&workspaceWindowClass);
@@ -68,7 +67,6 @@ namespace Amaterasu
 			drawList->AddRectFilled(p1, p2, IM_COL32(36, 36, 36, 255));
 			ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.0f, 3.0f));
 
-			style.WindowMenuButtonPosition = ImGuiDir_None;
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
 			ImGui::DockSpace(ImGui::GetID(windowName.c_str()), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None, &m_ToolWindowClass);
 			ImGui::PopStyleVar(1);

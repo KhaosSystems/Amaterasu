@@ -154,7 +154,7 @@ namespace Amaterasu
 		style.FrameRounding = 2;
 		style.GrabRounding = 2;
 		// Alignment
-		style.WindowMenuButtonPosition = ImGuiDir_Right;
+        style.WindowMenuButtonPosition = ImGuiDir_None;
 		// Colors
 		ImVec4* colors = ImGui::GetStyle().Colors;
 		colors[ImGuiCol_WindowBg] = ImColor(21, 21, 21, 255);
