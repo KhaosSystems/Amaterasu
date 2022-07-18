@@ -65,8 +65,7 @@ namespace Amaterasu
 			ImGui::PopStyleVar(3);
 
 			// Title bar
-			ImVec2 titleBarPos = ImGui::GetCursorScreenPos() + ImVec2(0.0f, 2.0f);
-			ImGui::SetCursorScreenPos(titleBarPos);
+			ImGui::SetCursorScreenPos(ImGui::GetWindowPos() + ImVec2(3.0f, 2.0f) /*ImGui::GetCursorScreenPos() + ImVec2(2.0f, 2.0f)*/);
 			if (ImGui::BeginTabBar("TheIdealSituation"))
 			{
 				ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading); // TODO: Make use icon font.
@@ -77,7 +76,7 @@ namespace Amaterasu
 				ImGui::EndTabBar();
 			}
 			
-			ImGui::SetCursorScreenPos(titleBarPos + ImVec2(ImGui::GetContentRegionAvail().x - 96.0f, 0));
+			ImGui::SetCursorScreenPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetContentRegionAvail().x - 95.0f, 2.0f));
 			if (ImGui::BeginTabBar("TheIdealSituation2"))
 			{
 				ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing); // TODO: Make use icon font.
