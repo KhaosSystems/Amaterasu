@@ -135,9 +135,20 @@ namespace Amaterasu
 		ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
 		ImGui_ImplOpenGL3_Init("#version 130");
 
-		// Load fonts
+		// Load default font
 		// TODO: Don't use absolute paths...
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Dev/Kronos/KronosEditor/Assets/Fonts/Consolas/CONSOLA.TTF", 14.0f);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/Consolas/CONSOLA.TTF", 14.0f);
+
+		// Load icon fonts
+		// https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-can-i-easily-use-icons-in-my-application
+		// https://github.com/ocornut/imgui/blob/master/docs/FONTS.md#using-custom-glyph-ranges
+		// TODO: Don't use absolute paths...
+		ImFontConfig fontConfig{};
+		fontConfig.MergeMode = true;
+		static ImWchar ranges[] = { 0xF3E2, 0xF3E2, 0 };
+		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-brands-400.ttf", 14.0f, &fontConfig, ranges);
+		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-regular-400.ttf", 14.0f);
+		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-solid-900.ttf", 14.0f);
 
 		// Configure style variables
 		ImGuiStyle& style = ImGui::GetStyle();
