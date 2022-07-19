@@ -66,7 +66,7 @@ namespace Amaterasu
         virtual const std::type_info& GetWorkspaceTypeInfo() const override { return typeid(WorkspaceType); }
 
     protected:
-        WorkspaceType* m_Workspace;
+        WorkspaceType* m_Workspace = nullptr;
         const std::string m_Name;
         const std::string m_DisplayName;
         const std::string m_WorkspaceTypeName;
