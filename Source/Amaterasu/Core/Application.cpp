@@ -145,10 +145,10 @@ namespace Amaterasu
 		// TODO: Don't use absolute paths...
 		ImFontConfig fontConfig{};
 		fontConfig.MergeMode = true;
-		static ImWchar ranges[] = { 0xF3E2, 0xF3E2, 0 };
-		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-brands-400.ttf", 14.0f, &fontConfig, ranges);
-		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-regular-400.ttf", 14.0f);
-		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-solid-900.ttf", 14.0f);
+		static ImWchar brandRanges[] = { 0xF3E2, 0xF3E2, 0 };
+		static ImWchar solidRanges[] = { 0xE236, 0xE236, 0 };
+		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-brands-400.ttf", 14.0f, &fontConfig, brandRanges);
+		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/Font Awesome 6 Pro Solid.ttf", 14.0f, &fontConfig, solidRanges);
 
 		// Configure style variables
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -162,8 +162,8 @@ namespace Amaterasu
 		style.TabBorderSize = 0;
 		style.ChildBorderSize = 0;
 		// Rounding
-		style.FrameRounding = 2;
-		style.GrabRounding = 2;
+		style.FrameRounding = 4;
+		style.GrabRounding = 4;
 		// Alignment
         style.WindowMenuButtonPosition = ImGuiDir_None;
 		// Colors
