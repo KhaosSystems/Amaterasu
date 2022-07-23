@@ -78,6 +78,9 @@ namespace Amaterasu
 				ImGui::DockNodeEndAmendTabBar();
 			}
 
+			// https://discourse.dearimgui.org/t/trouble-creating-a-default-docked-layout/204
+			// A functional selectable pseudo-popup window example using dear imgui, for use with autocomplete or input history. 
+			// https://gist.github.com/harold-b/7dcc02557c2b15d76c61fde1186e31d0
 			ImGui::SetCursorScreenPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetContentRegionAvail().x - 95.0f, 2.0f));
 			if (ImGui::BeginTabBar("TheIdealSituation2"))
 			{
