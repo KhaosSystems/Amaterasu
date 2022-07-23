@@ -70,6 +70,8 @@ namespace Amaterasu
 
 			ImGuiDockNode* dockNode = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
 
+			// TODO: Disable ImGuiWindowFlags_NoDocking on the window, if only one is in 
+
 			if (ImGui::DockNodeBeginAmendTabBar(dockNode))
 			{
 				ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading); // TODO: Make use icon font.
