@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include <imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
 // TODO: Only inputs save connection info? or output? who should save? Both might be handy.

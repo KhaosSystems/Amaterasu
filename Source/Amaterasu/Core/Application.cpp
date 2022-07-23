@@ -4,7 +4,11 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <imgui.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui_internal.h>
+
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <iostream>
@@ -146,9 +150,9 @@ namespace Amaterasu
 		ImFontConfig fontConfig{};
 		fontConfig.MergeMode = true;
 		static ImWchar brandRanges[] = { 0xF3E2, 0xF3E2, 0 };
-		static ImWchar solidRanges[] = { 0xE236, 0xE236, 0 };
+		static ImWchar solidRanges[] = { 0xF120, 0xF120, 0 };
 		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-brands-400.ttf", 14.0f, &fontConfig, brandRanges);
-		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/Font Awesome 6 Pro Solid.ttf", 14.0f, &fontConfig, solidRanges);
+		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-solid-900.ttf", 14.0f, &fontConfig, solidRanges);
 
 		// Configure style variables
 		ImGuiStyle& style = ImGui::GetStyle();

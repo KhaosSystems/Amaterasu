@@ -3,6 +3,7 @@
 #include <format>
 
 #include <imgui.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
 namespace Amaterasu
@@ -42,7 +43,7 @@ namespace Amaterasu
 
 		{
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+			ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_CentralNode;
 			const ImGuiWindowClass* window_class = &m_WorkspaceWindowClass;
 
 			ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -64,18 +65,17 @@ namespace Amaterasu
 			ImGui::Begin(label, nullptr, host_window_flags);
 			ImGui::PopStyleVar(3);
 
-			// Title bar
-			ImGui::SetCursorScreenPos(ImGui::GetWindowPos() + ImVec2(3.0f, 2.0f) /*ImGui::GetCursorScreenPos() + ImVec2(2.0f, 2.0f)*/);
-			if (ImGui::BeginTabBar("TheIdealSituation"))
+			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
+
+			ImGuiDockNode* dockNode = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
+
+			if (ImGui::DockNodeBeginAmendTabBar(dockNode))
 			{
 				ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading); // TODO: Make use icon font.
-				ImGui::TabItemButton("Workspace 1");
-				ImGui::TabItemButton("Workspace 2");
-				ImGui::TabItemButton("Workspace 3");
-
-				ImGui::EndTabBar();
+				ImGui::DockNodeEndAmendTabBar();
 			}
-			
+
 			ImGui::SetCursorScreenPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetContentRegionAvail().x - 95.0f, 2.0f));
 			if (ImGui::BeginTabBar("TheIdealSituation2"))
 			{
@@ -85,18 +85,6 @@ namespace Amaterasu
 				if (ImGui::TabItemButton("X", ImGuiTabItemFlags_Trailing));
 				ImGui::EndTabBar();
 			}
-
-			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
-
-			// Title bar
-			/*ImGuiDockNode* node = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
-			if (node && node->TabBar)
-			{
-				// TODO: Make use icon font.
-				ImGui::TabItemEx(node->TabBar, "K", nullptr, ImGuiTabItemFlags_Leading | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
-				ImGui::TabItemEx(node->TabBar, "+", nullptr, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_Button | ImGuiTabItemFlags_NoReorder, nullptr);
-			}*/
 
 			ImGui::End();
 
