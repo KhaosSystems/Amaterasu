@@ -23,6 +23,9 @@ namespace Amaterasu
 
 	char searchBuffer[256];
 
+	bool fileWindowOpen = false;
+	ImVec2 fileWindowPos = ImVec2(0.0f, 0.0f);
+
 	void WorkspaceStack::Render()
 	{
 		//ImGui::ShowDemoWindow();
@@ -79,7 +82,8 @@ namespace Amaterasu
 			{
 				if (ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading))// TODO: Use icon font.
 				{
-
+					fileWindowOpen = true;
+					fileWindowPos = ImGui::GetCursorScreenPos();
 				}
 				ImGui::DockNodeEndAmendTabBar();
 			}
@@ -109,32 +113,42 @@ namespace Amaterasu
 
 		style = oldStyle;
 
-		ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration;
-		ImGui::Begin("stuff", nullptr, flags);
-		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		// This window is basically just using 6.0f for padding - might be better than 8.0f..
 
-		ImVec2 inputSize = ImVec2(0.0f, ImGui::CalcTextSize(searchBuffer).y + style.FramePadding.y * 2.0f);
-
-		ImVec2 cursorPosWithWindowPadding = ImGui::GetCursorPos(); // TODO: Use some sort of custom style thing to access window padding directly
-		ImVec2 rectSize = ImVec2(ImGui::GetWindowSize().x, inputSize.y + 10.0f);
-		draw_list->AddRectFilled(ImVec2(0.0f, 0.0f), rectSize, ImColor(36, 36, 36, 255));
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImU32)ImColor(21, 21, 21, 255));
-		ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
-		if (ImGui::InputTextEx("##consoleInput", "Enter Console Command", searchBuffer, IM_ARRAYSIZE(searchBuffer), inputSize,
-			ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, nullptr, (void*)this))
+		if (fileWindowOpen)
 		{
+			ImGui::SetNextWindowPos(fileWindowPos);
+			ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration;
+			ImGui::Begin("stuff", nullptr, flags);
+			if (!ImGui::IsWindowHovered())
+			{
+				fileWindowOpen = false;
+			}
+
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+			ImVec2 inputSize = ImVec2(0.0f, ImGui::CalcTextSize(searchBuffer).y + style.FramePadding.y * 2.0f);
+
+			ImVec2 cursorPosWithWindowPadding = ImGui::GetCursorPos(); // TODO: Use some sort of custom style thing to access window padding directly
+			ImVec2 rectSize = ImVec2(ImGui::GetWindowSize().x, inputSize.y + 10.0f);
+			draw_list->AddRectFilled(ImVec2(0.0f, 0.0f), rectSize, ImColor(36, 36, 36, 255));
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImU32)ImColor(21, 21, 21, 255));
+			ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+			if (ImGui::InputTextEx("##consoleInput", "Enter Console Command", searchBuffer, IM_ARRAYSIZE(searchBuffer), inputSize,
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, nullptr, (void*)this))
+			{
+			}
+			ImGui::PopStyleColor();
+
+			ImGui::SetCursorPos(ImVec2(cursorPosWithWindowPadding.x, rectSize.y + 6.0f));
+
+			if (ImGui::MenuItem("Open Folder", "Ctrl+Shift+O"))
+			{
+
+			}
+
+			ImGui::End();
 		}
-		ImGui::PopStyleColor();
-
-		ImGui::SetCursorPos(ImVec2(cursorPosWithWindowPadding.x, rectSize.y + 6.0f));
-
-		if(ImGui::MenuItem("Open Folder", "Ctrl+Shift+O"))
-		{
-
-		}
-
-		ImGui::End();
 
 	}
 }
