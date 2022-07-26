@@ -45,6 +45,7 @@ namespace Amaterasu
 
             style.WindowMenuButtonPosition = ImGuiDir_None;
             style.FramePadding = ImVec2(4.0f, 4.0f);
+            style.WindowPadding = ImVec2(4.0f, 4.0f);
 
             ImGui::SetNextWindowClass(&toolWindowClass);
             std::string windowName = m_DisplayName + "###ToolWindow_" + m_Name;

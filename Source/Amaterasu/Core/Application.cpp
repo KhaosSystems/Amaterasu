@@ -160,7 +160,7 @@ namespace Amaterasu
 		style.IndentSpacing = 16;
 		style.ScrollbarSize = 12;
 		// Borders
-		style.WindowBorderSize = 1;
+		style.WindowBorderSize = 0.5f; // Was 1
 		style.PopupBorderSize = 0;
 		style.FrameBorderSize = 0;
 		style.TabBorderSize = 0;
