@@ -25,14 +25,57 @@ namespace Amaterasu
 
 	bool fileWindowOpen = false;
 	ImVec2 fileWindowPos = ImVec2(0.0f, 0.0f);
+	int tick = 0;
+	bool showDemoWindow = false;
 
 	void WorkspaceStack::Render()
 	{
-		//ImGui::ShowDemoWindow();
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiContext& g = *GImGui;
 		ImGuiStyle& style = ImGui::GetStyle();
 		ImGuiStyle oldStyle = style;
+		
+		if (showDemoWindow) ImGui::ShowDemoWindow(&showDemoWindow);
+
+		if (ImGui::Button("test")) showDemoWindow = !showDemoWindow;
+		if (ImGui::Button("test2")) fileWindowOpen = !fileWindowOpen;
+
+		if (fileWindowOpen)
+		{
+			ImGui::SetNextWindowPos(fileWindowPos);
+			ImGui::SetNextWindowSize(ImVec2(300.0f, 400.0f));
+			ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration;
+			if (ImGui::Begin("stuff123457", &fileWindowOpen, flags))
+			{
+				ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+				ImVec2 inputSize = ImVec2(0.0f, ImGui::CalcTextSize(searchBuffer).y + style.FramePadding.y * 2.0f);
+
+				ImVec2 cursorPosWithWindowPadding = ImGui::GetCursorPos(); // TODO: Use some sort of custom style thing to access window padding directly
+				ImVec2 rectSize = ImVec2(ImGui::GetWindowSize().x, inputSize.y + 10.0f);
+				draw_list->AddRectFilled(ImVec2(0.0f, 0.0f), rectSize, ImColor(36, 36, 36, 255));
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImU32)ImColor(21, 21, 21, 255));
+				ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+				if (ImGui::InputTextEx("##consoleInput", "Enter Console Command", searchBuffer, IM_ARRAYSIZE(searchBuffer), inputSize,
+					ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, nullptr, (void*)this))
+				{
+				}
+				ImGui::PopStyleColor();
+
+				ImGui::SetCursorPos(ImVec2(cursorPosWithWindowPadding.x, rectSize.y + 6.0f));
+
+				if (ImGui::MenuItem("Open Folder", "Ctrl+Shift+O"))
+				{
+					fileWindowOpen = false;
+				}
+
+				if (ImGui::MenuItem("Show Demo Window"))
+				{
+					showDemoWindow = !showDemoWindow;
+				}
+			}
+			ImGui::End();
+		}
 
 		// Workspaces
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
@@ -82,7 +125,7 @@ namespace Amaterasu
 			{
 				if (ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading))// TODO: Use icon font.
 				{
-					fileWindowOpen = true;
+					fileWindowOpen = !fileWindowOpen;
 					fileWindowPos = ImGui::GetCursorScreenPos();
 				}
 				ImGui::DockNodeEndAmendTabBar();
@@ -102,7 +145,6 @@ namespace Amaterasu
 			}
 
 			ImGui::End();
-
 		}
 		// ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
@@ -114,41 +156,5 @@ namespace Amaterasu
 		style = oldStyle;
 
 		// This window is basically just using 6.0f for padding - might be better than 8.0f..
-
-		if (fileWindowOpen)
-		{
-			ImGui::SetNextWindowPos(fileWindowPos);
-			ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration;
-			ImGui::Begin("stuff", nullptr, flags);
-			if (!ImGui::IsWindowHovered())
-			{
-				fileWindowOpen = false;
-			}
-
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-			ImVec2 inputSize = ImVec2(0.0f, ImGui::CalcTextSize(searchBuffer).y + style.FramePadding.y * 2.0f);
-
-			ImVec2 cursorPosWithWindowPadding = ImGui::GetCursorPos(); // TODO: Use some sort of custom style thing to access window padding directly
-			ImVec2 rectSize = ImVec2(ImGui::GetWindowSize().x, inputSize.y + 10.0f);
-			draw_list->AddRectFilled(ImVec2(0.0f, 0.0f), rectSize, ImColor(36, 36, 36, 255));
-			ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImU32)ImColor(21, 21, 21, 255));
-			ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
-			if (ImGui::InputTextEx("##consoleInput", "Enter Console Command", searchBuffer, IM_ARRAYSIZE(searchBuffer), inputSize,
-				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, nullptr, (void*)this))
-			{
-			}
-			ImGui::PopStyleColor();
-
-			ImGui::SetCursorPos(ImVec2(cursorPosWithWindowPadding.x, rectSize.y + 6.0f));
-
-			if (ImGui::MenuItem("Open Folder", "Ctrl+Shift+O"))
-			{
-
-			}
-
-			ImGui::End();
-		}
-
 	}
 }

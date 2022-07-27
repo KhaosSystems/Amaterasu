@@ -31,6 +31,11 @@ namespace Amaterasu
 	{
 	}
 
+	static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
+	{
+		glViewport(0, 0, width, height);
+	}
+
 	void Application::Run()
 	{
 		if (!glfwInit())
@@ -51,7 +56,15 @@ namespace Amaterasu
 			return;
 		}
 
+		glfwSetWindowPos(m_Window, 100, 100);
+		glfwSetWindowSizeLimits(m_Window, 720, 576, GLFW_DONT_CARE, GLFW_DONT_CARE);
+		
+		glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
+		
 		glfwMakeContextCurrent(m_Window);
+		glfwSwapInterval(1); // V-Sync
+
+		// GLFW Init end
 
 		InitializeImGui();
 
@@ -60,7 +73,8 @@ namespace Amaterasu
 		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		while (!glfwWindowShouldClose(m_Window))
 		{
-			glfwPollEvents();
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
 
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
@@ -69,11 +83,6 @@ namespace Amaterasu
 			ImGui::EndFrame();
 			ImGui::Render();
 
-			int display_w, display_h;
-			glfwGetFramebufferSize(m_Window, &display_w, &display_h);
-			glViewport(0, 0, display_w, display_h);
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 			ImGuiIO& io = ImGui::GetIO();
@@ -86,6 +95,8 @@ namespace Amaterasu
 			}
 
 			glfwSwapBuffers(m_Window);
+		
+			glfwPollEvents();
 		}
 
 		glfwTerminate();
@@ -177,9 +188,9 @@ namespace Amaterasu
 		colors[ImGuiCol_FrameBg] = ImColor(35, 35, 35, 255);
 		colors[ImGuiCol_FrameBgHovered] = ImColor(65, 65, 65, 255);
 		colors[ImGuiCol_FrameBgActive] = ImColor(45, 45, 45, 255);
-		colors[ImGuiCol_TitleBg] = ImColor(0, 0, 0, 0);
-		colors[ImGuiCol_TitleBgActive] = ImColor(0, 0, 0, 0);
-		colors[ImGuiCol_TitleBgCollapsed] = ImColor(0, 0, 0, 0);
+		colors[ImGuiCol_TitleBg] = ImColor(21, 21, 21, 255);
+		colors[ImGuiCol_TitleBgActive] = ImColor(21, 21, 21, 255);
+		colors[ImGuiCol_TitleBgCollapsed] = ImColor(21, 21, 21, 255);
 		colors[ImGuiCol_ButtonHovered] = ImColor(40, 40, 40, 255);
 		colors[ImGuiCol_ButtonActive] = ImColor(60, 60, 60, 255);
 		colors[ImGuiCol_Header] = ImColor(35, 35, 35, 255);
@@ -188,10 +199,10 @@ namespace Amaterasu
 		colors[ImGuiCol_Separator] = ImColor(35, 35, 35, 255);
 		colors[ImGuiCol_SeparatorHovered] = ImColor(45, 45, 45, 255);
 		colors[ImGuiCol_SeparatorActive] = ImColor(55, 55, 55, 255);
-		colors[ImGuiCol_Tab] = ImColor(0, 0, 0, 0);
+		colors[ImGuiCol_Tab] = ImColor(255, 0, 0, 255);
 		colors[ImGuiCol_TabHovered] = ImColor(36, 36, 36, 255);
 		colors[ImGuiCol_TabActive] = ImColor(36, 36, 36, 255);
-		colors[ImGuiCol_TabUnfocused] = ImColor(0, 0, 0, 0);
+		colors[ImGuiCol_TabUnfocused] = ImColor(255, 0, 0, 255);
 		colors[ImGuiCol_TabUnfocusedActive] = ImColor(36, 36, 36, 255);
 		colors[ImGuiCol_CheckMark] = ImColor(160, 160, 160, 255);
 	}
