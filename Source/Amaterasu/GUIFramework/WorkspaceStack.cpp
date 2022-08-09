@@ -37,9 +37,6 @@ namespace Amaterasu
 		
 		if (showDemoWindow) ImGui::ShowDemoWindow(&showDemoWindow);
 
-		if (ImGui::Button("test")) showDemoWindow = !showDemoWindow;
-		if (ImGui::Button("test2")) fileWindowOpen = !fileWindowOpen;
-
 		if (fileWindowOpen)
 		{
 			ImGui::SetNextWindowPos(fileWindowPos);
