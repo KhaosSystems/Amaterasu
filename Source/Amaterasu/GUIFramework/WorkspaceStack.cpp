@@ -120,7 +120,6 @@ namespace Amaterasu
 			ImGuiDockNode* dockNode = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
 
 			// TODO: Disable ImGuiWindowFlags_NoDocking on the window, if only one is in 
-
 			if (ImGui::DockNodeBeginAmendTabBar(dockNode))
 			{
 				if (ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading))// TODO: Use icon font.
@@ -128,23 +127,20 @@ namespace Amaterasu
 					fileWindowOpen = !fileWindowOpen;
 					fileWindowPos = ImGui::GetCursorScreenPos();
 				}
-				ImGui::DockNodeEndAmendTabBar();
-			}
 
-			// https://discourse.dearimgui.org/t/trouble-creating-a-default-docked-layout/204
-			// A functional selectable pseudo-popup window example using dear imgui, for use with autocomplete or input history. 
-			// https://gist.github.com/harold-b/7dcc02557c2b15d76c61fde1186e31d0
-			ImGui::SetCursorScreenPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetContentRegionAvail().x - 95.0f, 2.0f));
-			if (ImGui::BeginTabBar("TheIdealSituation2"))
-			{
-				// TODO: Make use icon font.
+				// This is janky af... but it works.
+				float w = ImGui::TabItemCalcSize("_", false).x + ImGui::TabItemCalcSize("[]", false).x + ImGui::TabItemCalcSize("X", false).x;
+				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - w);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.0f);
+				ImGui::TabItemButton("Spacer");
+				ImGui::PopStyleVar();
+
 				if (ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing));
 				if (ImGui::TabItemButton("[]", ImGuiTabItemFlags_Trailing));
 				if (ImGui::TabItemButton("X", ImGuiTabItemFlags_Trailing));
-				ImGui::EndTabBar();
-			}
 
-			ImGui::End();
+				ImGui::DockNodeEndAmendTabBar();
+			}
 		}
 		// ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
