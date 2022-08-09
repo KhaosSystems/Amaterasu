@@ -120,6 +120,7 @@ namespace Amaterasu
 			ImGuiDockNode* dockNode = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
 
 			// TODO: Disable ImGuiWindowFlags_NoDocking on the window, if only one is in 
+
 			if (ImGui::DockNodeBeginAmendTabBar(dockNode))
 			{
 				if (ImGui::TabItemButton("K", ImGuiTabItemFlags_Leading))// TODO: Use icon font.
@@ -128,7 +129,7 @@ namespace Amaterasu
 					fileWindowPos = ImGui::GetCursorScreenPos();
 				}
 
-				// This is janky af... but it works.
+				// TODO: This is messy...
 				float w = ImGui::TabItemCalcSize("_", false).x + ImGui::TabItemCalcSize("[]", false).x + ImGui::TabItemCalcSize("X", false).x;
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - w);
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.0f);
@@ -141,6 +142,8 @@ namespace Amaterasu
 
 				ImGui::DockNodeEndAmendTabBar();
 			}
+
+			ImGui::End();
 		}
 		// ImGui::DockSpaceOverViewport(NULL, ImGuiDockNodeFlags_None, &workspaceClass);
 
