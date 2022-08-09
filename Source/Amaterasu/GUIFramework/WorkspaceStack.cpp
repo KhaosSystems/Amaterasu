@@ -133,9 +133,18 @@ namespace Amaterasu
 				ImGui::TabItemButton("Spacer");
 				ImGui::PopStyleVar();
 
-				if (ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing));
-				if (ImGui::TabItemButton("[]", ImGuiTabItemFlags_Trailing));
-				if (ImGui::TabItemButton("X", ImGuiTabItemFlags_Trailing));
+				if (ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing))
+				{
+				}
+
+				if (ImGui::TabItemButton("[]", ImGuiTabItemFlags_Trailing))
+				{
+				}
+
+				if (ImGui::TabItemButton("X", ImGuiTabItemFlags_Trailing))
+				{
+					std::exit(0);
+				}
 
 				ImGui::DockNodeEndAmendTabBar();
 			}
