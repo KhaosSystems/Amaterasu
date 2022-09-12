@@ -140,6 +140,8 @@ namespace Amaterasu
 
 		if (ImGui::IsMouseClicked(0))
 		{
+			lastClickPosition = point;
+
 			if (point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y)
 			{
 				windowMoveOffset = windowPos - point;
@@ -148,7 +150,7 @@ namespace Amaterasu
 
 			if (hoveringResizeNWSE || hoveringResizeNS || hoveringResizeEW)
 			{
-				windowResizeOffset = windowPos - point;
+				originalWindowSize = windowSize;
 				isResizingWindow = true;
 			}
 		}
@@ -166,7 +168,10 @@ namespace Amaterasu
 
 		if (isResizingWindow)
 		{
-			glfwSetWindowSize(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
+			ImVec2 minSize = ImVec2(1280, 720);
+			ImVec2 maxSize = ImVec2(1024*64, 1024 * 64);
+			ImVec2 newSize = ImClamp(originalWindowSize + (point - lastClickPosition), minSize, maxSize);
+			glfwSetWindowSize(GetWindow(), newSize.x, newSize.y);
 		}
 
 		m_WorkspaceStack.Render();
