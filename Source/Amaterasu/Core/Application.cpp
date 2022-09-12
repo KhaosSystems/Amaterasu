@@ -152,7 +152,7 @@ namespace Amaterasu
 
 		// Load default font
 		// TODO: Don't use absolute paths...
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/Consolas/CONSOLA.TTF", 14.0f);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("D:/Dev/KhaosSystems/Amaterasu/Assets/Consolas/CONSOLA.TTF", 14.0f);
 
 		// Load icon fonts
 		// https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-can-i-easily-use-icons-in-my-application
@@ -162,8 +162,8 @@ namespace Amaterasu
 		fontConfig.MergeMode = true;
 		static ImWchar brandRanges[] = { 0xF3E2, 0xF3E2, 0 };
 		static ImWchar solidRanges[] = { 0xF120, 0xF120, 0 };
-		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-brands-400.ttf", 14.0f, &fontConfig, brandRanges);
-		io.Fonts->AddFontFromFileTTF("C:/Dev/KhaosSystems/Raijin/Vendor/Amaterasu/Assets/FontAwesome/fa-solid-900.ttf", 14.0f, &fontConfig, solidRanges);
+		io.Fonts->AddFontFromFileTTF("D:/Dev/KhaosSystems/Amaterasu/Assets/FontAwesome/fa-brands-400.ttf", 14.0f, &fontConfig, brandRanges);
+		io.Fonts->AddFontFromFileTTF("D:/Dev/KhaosSystems/Amaterasu/Assets/FontAwesome/fa-solid-900.ttf", 14.0f, &fontConfig, solidRanges);
 
 		// Configure style variables
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -199,10 +199,10 @@ namespace Amaterasu
 		colors[ImGuiCol_Separator] = ImColor(35, 35, 35, 255);
 		colors[ImGuiCol_SeparatorHovered] = ImColor(45, 45, 45, 255);
 		colors[ImGuiCol_SeparatorActive] = ImColor(55, 55, 55, 255);
-		colors[ImGuiCol_Tab] = ImColor(255, 0, 0, 255);
+		colors[ImGuiCol_Tab] = ImColor(21, 21, 21, 255);
 		colors[ImGuiCol_TabHovered] = ImColor(36, 36, 36, 255);
 		colors[ImGuiCol_TabActive] = ImColor(36, 36, 36, 255);
-		colors[ImGuiCol_TabUnfocused] = ImColor(255, 0, 0, 255);
+		colors[ImGuiCol_TabUnfocused] = ImColor(21, 21, 21, 255);
 		colors[ImGuiCol_TabUnfocusedActive] = ImColor(36, 36, 36, 255);
 		colors[ImGuiCol_CheckMark] = ImColor(160, 160, 160, 255);
 	}
