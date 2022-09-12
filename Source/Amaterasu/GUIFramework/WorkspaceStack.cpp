@@ -111,12 +111,15 @@ namespace Amaterasu
 			ImGui::Begin(label, nullptr, host_window_flags);
 			ImGui::PopStyleVar(3);
 
+			ImGuiWindow* hostWindow = g.CurrentWindow;
+
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
 
 			ImGuiDockNode* dockNode = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
-			bool x = ImGui::IsItemHovered();
-			//ImGui::Text("0x%08X", dockNode->ID);
+			bool x = false;
+			if (hostWindow) ImGui::Text("0x%08X", hostWindow->GetID("#TITLEBAR"));
+			ImGui::Text("0x%08X", ImGui::GetID("#TITLEBAR"));
 
 			// TODO: Disable ImGuiWindowFlags_NoDocking on the window, if only one is in 
 
