@@ -115,6 +115,8 @@ namespace Amaterasu
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
 
 			ImGuiDockNode* dockNode = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
+			bool x = ImGui::IsItemHovered();
+			//ImGui::Text("0x%08X", dockNode->ID);
 
 			// TODO: Disable ImGuiWindowFlags_NoDocking on the window, if only one is in 
 
@@ -132,6 +134,8 @@ namespace Amaterasu
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.0f);
 				ImGui::TabItemButton("Spacer");
 				ImGui::PopStyleVar();
+
+				std::cout << x << std::endl;
 
 				if (ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing))
 				{
