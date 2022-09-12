@@ -106,35 +106,46 @@ namespace Amaterasu
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
+		// TODO: Better window dragging.
+
+		int windowPosX, windowPosY, windowSizeX, windowSizeY = 0;
+		glfwGetWindowPos(GetWindow(), &windowPosX, &windowPosY);
+		glfwGetWindowSize(GetWindow(), &windowSizeX, &windowSizeY);
+		ImVec2 windowPos = ImVec2(windowPosX, windowPosY);
+		ImVec2 windowSize = ImVec2(windowSizeX, windowSizeY);
+		ImVec2 p1 = ImVec2(160.0f, 0.0f) + windowPos;
+		ImVec2 p2 = ImVec2(1170.0f, 30.0f) + windowPos;
+		ImVec2 point = io.MousePos;
+
+		if (ImGui::IsMouseClicked(0))
 		{
-			int windowX, windowY = 0;
-			glfwGetWindowPos(GetWindow(), &windowX, &windowY);
-			ImVec2 windowPos = ImVec2(windowX, windowY);
-			ImVec2 p1 = ImVec2(300.0f, 0.0f) + windowPos;
-			ImVec2 p2 = ImVec2(600.0f, 60.0f) + windowPos;
-			ImVec2 point = io.MousePos;
-
-			if (ImGui::IsMouseClicked(0))
+			if (point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y)
 			{
-				if (point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y)
-				{
-					windowMoveOffset = windowPos - point;
-					isDraggingWindow = true;
-				}
-			}
-
-			if (ImGui::IsMouseReleased(0))
-			{
-				isDraggingWindow = false;
-			}
-
-			if (isDraggingWindow)
-			{
-				glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
+				windowMoveOffset = windowPos - point;
+				isDraggingWindow = true;
 			}
 		}
 
+		if (ImGui::IsMouseReleased(0))
+		{
+			isDraggingWindow = false;
+		}
+
+		if (isDraggingWindow)
+		{
+			glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
+		}
+
 		m_WorkspaceStack.Render();
+
+		// TODO: Disable in debug options.
+		ImGui::GetForegroundDrawList()->AddRectFilled(p1, p2, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
+
+		// Resize
+		ImVec2 p4 = windowPos + windowSize;
+		ImVec2 p3 = p4 - ImVec2(25.0f, 25.0f);
+		ImGui::GetForegroundDrawList()->AddRectFilled(p3, p4, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
+
 	}
 
 	void Application::InitializeImGui()

@@ -111,15 +111,12 @@ namespace Amaterasu
 			ImGui::Begin(label, nullptr, host_window_flags);
 			ImGui::PopStyleVar(3);
 
-			ImGuiWindow* hostWindow = g.CurrentWindow;
-
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
 
 			ImGuiDockNode* dockNode = (ImGuiDockNode*)GImGui->DockContext.Nodes.GetVoidPtr(dockspace_id);
-			bool x = false;
-			if (hostWindow) ImGui::Text("0x%08X", hostWindow->GetID("#TITLEBAR"));
-			ImGui::Text("0x%08X", ImGui::GetID("#TITLEBAR"));
+			
+			// TODO: Drag on #TITLEBAR (See: https://github.com/ocornut/imgui/issues/5250)
 
 			// TODO: Disable ImGuiWindowFlags_NoDocking on the window, if only one is in 
 
@@ -135,10 +132,10 @@ namespace Amaterasu
 				float w = ImGui::TabItemCalcSize("_", false).x + ImGui::TabItemCalcSize("[]", false).x + ImGui::TabItemCalcSize("X", false).x;
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - w);
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.0f);
-				ImGui::TabItemButton("Spacer");
-				ImGui::PopStyleVar();
 
-				std::cout << x << std::endl;
+				ImGui::TabItemButton("Spacer");
+
+				ImGui::PopStyleVar();
 
 				if (ImGui::TabItemButton("_", ImGuiTabItemFlags_Trailing))
 				{
