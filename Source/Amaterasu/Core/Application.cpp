@@ -117,6 +117,27 @@ namespace Amaterasu
 		ImVec2 p2 = ImVec2(1170.0f, 30.0f) + windowPos;
 		ImVec2 point = io.MousePos;
 
+
+		// Resize
+		const float margin = 4.0f;
+		const float cornor = 12.0f;
+		ImVec2 p3 = windowPos + ImVec2(windowSize.x - margin, 0.0f);
+		ImVec2 p4 = windowPos + ImVec2(0.0f, windowSize.y - margin);
+		ImVec2 p5 = windowPos + (windowSize - ImVec2(cornor, cornor));
+		ImVec2 p6 = windowPos + windowSize;
+
+		ImGui::GetForegroundDrawList()->AddRectFilled(p3, p6, ImColor(1.0f, 0.5f, 0.0f, 0.5f));
+		ImGui::GetForegroundDrawList()->AddRectFilled(p4, p6, ImColor(0.5f, 1.0f, 0.0f, 0.5f));
+		ImGui::GetForegroundDrawList()->AddRectFilled(p5, p6, ImColor(1.0f, 1.0f, 0.0f, 0.5f));
+
+		bool hoveringResizeNWSE = ImGui::IsMouseHoveringRect(p5, p6, false);
+		bool hoveringResizeNS = ImGui::IsMouseHoveringRect(p4, p6, false);
+		bool hoveringResizeEW = ImGui::IsMouseHoveringRect(p3, p6, false);
+
+		if (hoveringResizeNWSE) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE); }
+		else if (hoveringResizeNS) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS); }
+		else if (ImGui::IsMouseHoveringRect(p3, p6, false)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+
 		if (ImGui::IsMouseClicked(0))
 		{
 			if (point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y)
@@ -124,11 +145,18 @@ namespace Amaterasu
 				windowMoveOffset = windowPos - point;
 				isDraggingWindow = true;
 			}
+
+			if (hoveringResizeNWSE || hoveringResizeNS || hoveringResizeEW)
+			{
+				windowResizeOffset = windowPos - point;
+				isResizingWindow = true;
+			}
 		}
 
 		if (ImGui::IsMouseReleased(0))
 		{
 			isDraggingWindow = false;
+			isResizingWindow = false;
 		}
 
 		if (isDraggingWindow)
@@ -136,15 +164,15 @@ namespace Amaterasu
 			glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
 		}
 
+		if (isResizingWindow)
+		{
+			glfwSetWindowSize(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
+		}
+
 		m_WorkspaceStack.Render();
 
 		// TODO: Disable in debug options.
 		ImGui::GetForegroundDrawList()->AddRectFilled(p1, p2, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
-
-		// Resize
-		ImVec2 p4 = windowPos + windowSize;
-		ImVec2 p3 = p4 - ImVec2(25.0f, 25.0f);
-		ImGui::GetForegroundDrawList()->AddRectFilled(p3, p4, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
 
 	}
 

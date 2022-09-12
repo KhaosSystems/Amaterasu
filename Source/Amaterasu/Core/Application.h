@@ -32,7 +32,8 @@ namespace Amaterasu
 
         GLFWwindow* m_Window;
     
-        ImVec2 windowMoveOffset = ImVec2(0.0f, 0.0f);
-        bool isDraggingWindow = false;
+        ImVec2 windowMoveOffset, windowResizeOffset = ImVec2(0.0f, 0.0f);
+        bool isDraggingWindow, isResizingWindow = false;
+        
     };
 }
