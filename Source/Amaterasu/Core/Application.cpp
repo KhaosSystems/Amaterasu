@@ -46,9 +46,6 @@ namespace Amaterasu
 
 	}
 
-	static bool resize = false;
-
-
 	void Application::Run()
 	{
 		if (!glfwInit())
@@ -60,7 +57,6 @@ namespace Amaterasu
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
 		m_Window = glfwCreateWindow(1280, 720, m_Name.c_str(), nullptr, nullptr);
@@ -70,12 +66,12 @@ namespace Amaterasu
 			return;
 		}
 
+		glfwSetWindowUserPointer(m_Window, this);
+
+		glfwMakeContextCurrent(m_Window);
+		glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
 		glfwSetWindowPos(m_Window, 100, 100);
 		glfwSetWindowSizeLimits(m_Window, 720, 576, GLFW_DONT_CARE, GLFW_DONT_CARE);
-		
-		glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
-		
-		glfwMakeContextCurrent(m_Window);
 		glfwSwapInterval(1); // V-Sync
 
 #if defined(_WIN32)
@@ -109,22 +105,16 @@ namespace Amaterasu
 
 		while (!glfwWindowShouldClose(m_Window))
 		{
-			if (!resize)
-				Render();
-
 			glfwPollEvents();
+			Render();
 		}
 
 		glfwTerminate();
 	}
 
 
-	static int i;
 	void Application::Render()
 	{
-		i++;
-		assert(i == 1);
-
 		const ImVec4 Color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -151,8 +141,6 @@ namespace Amaterasu
 		}
 
 		glfwSwapBuffers(m_Window);
-	
-		i = 0;
 	}
 
 	void Application::ImGuiRender()
@@ -312,23 +300,9 @@ namespace Amaterasu
 
 		} break;
 
-		case WM_ENTERSIZEMOVE:
-		{
-			std::cout << "start" << std::endl;
-			resize = true;
-		} break;
-
-		case WM_EXITSIZEMOVE:
-		{
-			std::cout << "end" << std::endl;
-			resize = false;
-		} break;
-
 		case WM_SIZE:
 		case WM_MOVE:
 		{
-			std::cout << "R" << std::endl;
-
 			self->Render();
 
 		} break;
