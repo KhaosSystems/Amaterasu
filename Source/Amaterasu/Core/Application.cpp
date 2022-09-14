@@ -42,8 +42,19 @@ namespace Amaterasu
 
 	static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 	{
+		// make sure the viewport matches the new window dimensions; note that width and 
+		// height will be significantly larger than specified on retina displays.
 		glViewport(0, 0, width, height);
 
+		// Re-render the scene because the current frame was drawn for the old resolution
+		Application* self = (Application*)glfwGetWindowUserPointer(window);
+		self->Render();
+	}
+
+	static void WindowSizeCallback(GLFWwindow* window, int width, int height)
+	{
+		glViewport(0, 0, width, height);
+		std::cout << "w";
 	}
 
 	void Application::Run()
@@ -70,6 +81,7 @@ namespace Amaterasu
 
 		glfwMakeContextCurrent(m_Window);
 		glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
+		glfwSetWindowSizeCallback(m_Window, WindowSizeCallback);
 		glfwSetWindowPos(m_Window, 100, 100);
 		glfwSetWindowSizeLimits(m_Window, 720, 576, GLFW_DONT_CARE, GLFW_DONT_CARE);
 		glfwSwapInterval(1); // V-Sync
