@@ -21,6 +21,7 @@
 #include <dwmapi.h>
 #endif
 
+// TODO: Fix resize jittering, might be worth removing glfw as a depenceity while at it...
 
 namespace Amaterasu
 {
