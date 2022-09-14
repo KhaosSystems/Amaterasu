@@ -95,7 +95,7 @@ namespace Amaterasu
 		m_DefaultWindowProc = (WNDPROC)SetWindowLongPtr(WindowHandle, GWLP_WNDPROC, (LONG_PTR)CustomWindowProc);
 
 		// Create drop target
-		m_pDropTarget = new Win32DropTarget();
+		//m_pDropTarget = new Win32DropTarget();
 #endif
 
 		// GLFW Init end
@@ -136,13 +136,14 @@ namespace Amaterasu
 		glfwTerminate();
 	}
 
+	static bool b_Rendering = false;
 	void Application::ImGuiRender()
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		//ImGuiIO& io = ImGui::GetIO();
 
 		// TODO: Better window dragging.
 
-		int windowPosX, windowPosY, windowSizeX, windowSizeY = 0;
+		/*int windowPosX, windowPosY, windowSizeX, windowSizeY = 0;
 		glfwGetWindowPos(GetWindow(), &windowPosX, &windowPosY);
 		glfwGetWindowSize(GetWindow(), &windowSizeX, &windowSizeY);
 		ImVec2 windowPos = ImVec2(windowPosX, windowPosY);
@@ -151,27 +152,8 @@ namespace Amaterasu
 		ImVec2 p2 = ImVec2(1170.0f, 30.0f) + windowPos;
 		ImVec2 point = io.MousePos;
 
-		ImGui::GetForegroundDrawList()->AddRectFilled(p1, p2, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
+		//ImGui::GetForegroundDrawList()->AddRectFilled(p1, p2, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
 
-		// Resize
-		const float margin = 4.0f;
-		const float cornor = 12.0f;
-		ImVec2 p3 = windowPos + ImVec2(windowSize.x - margin, 0.0f);
-		ImVec2 p4 = windowPos + ImVec2(0.0f, windowSize.y - margin);
-		ImVec2 p5 = windowPos + (windowSize - ImVec2(cornor, cornor));
-		ImVec2 p6 = windowPos + windowSize;
-
-		ImGui::GetForegroundDrawList()->AddRectFilled(p3, p6, ImColor(1.0f, 0.5f, 0.0f, 0.5f));
-		ImGui::GetForegroundDrawList()->AddRectFilled(p4, p6, ImColor(0.5f, 1.0f, 0.0f, 0.5f));
-		ImGui::GetForegroundDrawList()->AddRectFilled(p5, p6, ImColor(1.0f, 1.0f, 0.0f, 0.5f));
-
-		bool hoveringResizeNWSE = ImGui::IsMouseHoveringRect(p5, p6, false);
-		bool hoveringResizeNS = ImGui::IsMouseHoveringRect(p4, p6, false);
-		bool hoveringResizeEW = ImGui::IsMouseHoveringRect(p3, p6, false);
-
-		if (hoveringResizeNWSE) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE); }
-		else if (hoveringResizeNS) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS); }
-		else if (ImGui::IsMouseHoveringRect(p3, p6, false)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
 
 		if (ImGui::IsMouseClicked(0))
 		{
@@ -182,33 +164,17 @@ namespace Amaterasu
 				windowMoveOffset = windowPos - point;
 				isDraggingWindow = true;
 			}
-
-			if (hoveringResizeNWSE || hoveringResizeNS || hoveringResizeEW)
-			{
-				originalWindowSize = windowSize;
-				isResizingWindow = true;
-			}
 		}
 
 		if (ImGui::IsMouseReleased(0))
 		{
 			isDraggingWindow = false;
-			isResizingWindow = false;
 		}
 
 		if (isDraggingWindow)
 		{
 			glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
-		}
-
-		if (isResizingWindow)
-		{
-			ImVec2 minSize = ImVec2(1280, 720);
-			ImVec2 maxSize = ImVec2(1024*64, 1024 * 64);
-			ImVec2 newSize = ImClamp(originalWindowSize + (point - lastClickPosition), minSize, maxSize);
-			//glfwSetWindowSize(GetWindow(), newSize.x, newSize.y);
-			
-		}
+		}*/
 
 		m_WorkspaceStack.Render();
 	}
@@ -286,7 +252,115 @@ namespace Amaterasu
 #if defined(_WIN32)
 	LRESULT Application::CustomWindowProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
 	{
+		Application* self = (Application*)GetWindowLongPtr(Handle, GWLP_USERDATA);
 
+		switch (Msg)
+		{
+		case WM_NCHITTEST:
+		{
+			POINT MousePos;
+			RECT  WindowRect;
+
+			GetCursorPos(&MousePos);
+			GetWindowRect(Handle, &WindowRect);
+
+			if (PtInRect(&WindowRect, MousePos))
+			{
+				const int BorderX = GetSystemMetrics(SM_CXFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
+				const int BorderY = GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
+
+				if (MousePos.y < (WindowRect.top + BorderY))
+				{
+					if (MousePos.x < (WindowRect.left + BorderX)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE); return HTTOPLEFT; }
+					else if (MousePos.x >= (WindowRect.right - BorderX)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNESW); return HTTOPRIGHT; }
+					else { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);   return HTTOP; }
+				}
+				else if (MousePos.y >= (WindowRect.bottom - BorderY))
+				{
+					if (MousePos.x < (WindowRect.left + BorderX)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNESW); return HTBOTTOMLEFT; }
+					else if (MousePos.x >= (WindowRect.right - BorderX)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE); return HTBOTTOMRIGHT; }
+					else { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);   return HTBOTTOM; }
+				}
+				else if (MousePos.x < (WindowRect.left + BorderX))
+				{
+					ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+					return HTLEFT;
+				}
+				else if (MousePos.x >= (WindowRect.right - BorderX))
+				{
+					ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+					return HTRIGHT;
+				}
+				else
+				{
+					// Drag the menu bar to move the window
+					//if (!ImGui::IsAnyItemHovered() && (MousePos.y < (WindowRect.top + self->pTitleBar->Height())))
+						//return HTCAPTION;
+				}
+			}
+
+		} break;
+
+		case WM_NCCALCSIZE:
+		{
+			// Fix maximized windows for some reason accounting for border size
+			if (WParam == TRUE)
+			{
+				WINDOWPLACEMENT WindowPlacement{ .length = sizeof(WINDOWPLACEMENT) };
+
+				if (GetWindowPlacement(Handle, &WindowPlacement) && WindowPlacement.showCmd == SW_SHOWMAXIMIZED)
+				{
+					NCCALCSIZE_PARAMS& rParams = *reinterpret_cast<LPNCCALCSIZE_PARAMS>(LParam);
+					const int          BorderX = GetSystemMetrics(SM_CXFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
+					const int          BorderY = GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER);
+
+					rParams.rgrc[0].left += BorderX;
+					rParams.rgrc[0].top += BorderY;
+					rParams.rgrc[0].right -= BorderX;
+					rParams.rgrc[0].bottom -= BorderY;
+
+					// Use the rectangle specified in rgrc[0] for the new client area
+					return WVR_VALIDRECTS;
+				}
+			}
+
+			// Preserve the old client area and align it with the upper-left corner of the new client area
+			return 0;
+
+		} break;
+
+		case WM_ENTERSIZEMOVE:
+		{
+			SetTimer(Handle, 1, USER_TIMER_MINIMUM, NULL);
+
+		} break;
+
+		case WM_EXITSIZEMOVE:
+		{
+			KillTimer(Handle, 1);
+
+		} break;
+
+		case WM_TIMER:
+		{
+			const UINT_PTR TimerID = (UINT_PTR)WParam;
+
+			if (TimerID == 1)
+			{
+				self->ImGuiRender();
+			}
+
+		} break;
+
+		case WM_SIZE:
+		case WM_MOVE:
+		{
+			self->ImGuiRender();
+
+		} break;
+		}
+
+		return CallWindowProc(self->m_DefaultWindowProc, Handle, Msg, WParam, LParam);
 	}
 #endif
 
