@@ -25,12 +25,10 @@
 
 namespace Amaterasu
 {
-
 	void GLFWErrorCallback(int error_code, const char* description)
 	{
 		std::cout << description << std::endl;
 	}
-
 
 	Application::Application(const std::string& name)
 		: m_Window(nullptr)
@@ -117,7 +115,6 @@ namespace Amaterasu
 
 		glfwTerminate();
 	}
-
 
 	void Application::Render()
 	{
@@ -224,7 +221,6 @@ namespace Amaterasu
 		colors[ImGuiCol_CheckMark] = ImColor(160, 160, 160, 255);
 	}
 
-
 #if defined(_WIN32)
 	LRESULT Application::CustomWindowProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
 	{
@@ -270,7 +266,6 @@ namespace Amaterasu
 				else
 				{
 					// TODO: Improve.
-					// Drag the menu bar to move the window
 					if (MousePos.y < WindowRect.top + 30.0f &&
 						MousePos.x > WindowRect.left + 155.0f &&
 						MousePos.x < WindowRect.right - 100.0f)

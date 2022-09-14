@@ -7,6 +7,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#include "Amaterasu/Core/FileDialogs.h"
+
 namespace Amaterasu
 {
 	WorkspaceStack::WorkspaceStack()
@@ -63,6 +65,8 @@ namespace Amaterasu
 
 				if (ImGui::MenuItem("Open Folder", "Ctrl+Shift+O"))
 				{
+					std::string filepath = FileDialogs::OpenFile("Any File");
+
 					fileWindowOpen = false;
 				}
 
