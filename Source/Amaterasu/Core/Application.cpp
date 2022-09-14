@@ -99,37 +99,15 @@ namespace Amaterasu
 #endif
 
 		// GLFW Init end
-
 		InitializeImGui();
 
 		// Initialize glad
-
 		gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+
 		while (!glfwWindowShouldClose(m_Window))
 		{
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			Render();
 
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-			ImGuiRender();
-			ImGui::EndFrame();
-			ImGui::Render();
-
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-			ImGuiIO& io = ImGui::GetIO();
-			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-			{
-				GLFWwindow* backup_current_context = glfwGetCurrentContext();
-				ImGui::UpdatePlatformWindows();
-				ImGui::RenderPlatformWindowsDefault();
-				glfwMakeContextCurrent(backup_current_context);
-			}
-
-			glfwSwapBuffers(m_Window);
-		
 			glfwPollEvents();
 		}
 
@@ -137,6 +115,42 @@ namespace Amaterasu
 	}
 
 	static bool b_Rendering = false;
+	void Application::Render()
+	{
+		if (b_Rendering) return;
+		b_Rendering = true;
+
+		const ImVec4 Color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+
+		ImGui::NewFrame();
+		
+		ImGuiRender();
+		ImGui::EndFrame();
+
+		ImGui::Render();
+
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+
+		glfwSwapBuffers(m_Window);
+	
+		b_Rendering = false;
+	}
+
 	void Application::ImGuiRender()
 	{
 		//ImGuiIO& io = ImGui::GetIO();
@@ -347,7 +361,7 @@ namespace Amaterasu
 
 			if (TimerID == 1)
 			{
-				self->ImGuiRender();
+				self->Render();
 			}
 
 		} break;
@@ -355,7 +369,7 @@ namespace Amaterasu
 		case WM_SIZE:
 		case WM_MOVE:
 		{
-			self->ImGuiRender();
+			self->Render();
 
 		} break;
 		}

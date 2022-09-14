@@ -23,6 +23,7 @@ namespace Amaterasu
 
 		void Run();
 
+		void Render();
 		virtual void ImGuiRender();
 
 		GLFWwindow* GetWindow() const { return m_Window; }
