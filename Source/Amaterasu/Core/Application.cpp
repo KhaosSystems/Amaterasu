@@ -52,12 +52,6 @@ namespace Amaterasu
 		self->Render();
 	}
 
-	static void WindowSizeCallback(GLFWwindow* window, int width, int height)
-	{
-		glViewport(0, 0, width, height);
-		std::cout << "w";
-	}
-
 	void Application::Run()
 	{
 		if (!glfwInit())
@@ -82,7 +76,6 @@ namespace Amaterasu
 
 		glfwMakeContextCurrent(m_Window);
 		glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
-		glfwSetWindowSizeCallback(m_Window, WindowSizeCallback);
 		glfwSetWindowPos(m_Window, 100, 100);
 		glfwSetWindowSizeLimits(m_Window, 720, 576, GLFW_DONT_CARE, GLFW_DONT_CARE);
 		glfwSwapInterval(1); // V-Sync
@@ -278,7 +271,9 @@ namespace Amaterasu
 				{
 					// TODO: Improve.
 					// Drag the menu bar to move the window
-					if (/*!ImGui::IsAnyItemHovered() && */(MousePos.y < (WindowRect.top + 30.0f /*workspackStack->TabBarHiight*/)))
+					if (MousePos.y < WindowRect.top + 30.0f &&
+						MousePos.x > WindowRect.left + 150.0f &&
+						MousePos.x < WindowRect.right - 150.0f)
 						return HTCAPTION;
 				}
 			}
