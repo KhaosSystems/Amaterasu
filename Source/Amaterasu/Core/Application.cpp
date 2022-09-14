@@ -2,8 +2,12 @@
 
 #include "Application.h"
 
+#if defined( _WIN32 )
+	#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -12,6 +16,11 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <iostream>
+
+#if defined( _WIN32 )
+#include <dwmapi.h>
+#endif
+
 
 namespace Amaterasu
 {
@@ -34,6 +43,7 @@ namespace Amaterasu
 	static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 	{
 		glViewport(0, 0, width, height);
+
 	}
 
 	void Application::Run()
@@ -47,6 +57,7 @@ namespace Amaterasu
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
 		m_Window = glfwCreateWindow(1280, 720, m_Name.c_str(), nullptr, nullptr);
@@ -63,6 +74,29 @@ namespace Amaterasu
 		
 		glfwMakeContextCurrent(m_Window);
 		glfwSwapInterval(1); // V-Sync
+
+#if defined(_WIN32)
+		
+		// https://github.com/Geno-IDE/Geno/blob/master/src/Geno/C%2B%2B/GUI/MainWindow.cpp
+
+		HWND WindowHandle = glfwGetWin32Window(m_Window);
+
+		// Add some necessary window styles manually.
+		// First of all, fix the fact that GLFW doesn't set WS_THICKFRAME or WS_MAXIMIZEBOX for non-decorated windows (Required for resizability).
+		// Secondly, add WS_CAPTION so that we get a smooth animation when we minimize and maximize the window.
+		SetWindowLong(WindowHandle, GWL_STYLE, GetWindowLong(WindowHandle, GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+
+		// Fix missing drop shadow
+		MARGINS ShadowMargins = { 10, 10, 10, 10 };
+		DwmExtendFrameIntoClientArea(WindowHandle, &ShadowMargins);
+
+		// Override window procedure with custom one to allow native window moving behavior without a title bar
+		SetWindowLongPtr(WindowHandle, GWLP_USERDATA, (LONG_PTR)this);
+		m_DefaultWindowProc = (WNDPROC)SetWindowLongPtr(WindowHandle, GWLP_WNDPROC, (LONG_PTR)CustomWindowProc);
+
+		// Create drop target
+		m_pDropTarget = new Win32DropTarget();
+#endif
 
 		// GLFW Init end
 
@@ -117,6 +151,7 @@ namespace Amaterasu
 		ImVec2 p2 = ImVec2(1170.0f, 30.0f) + windowPos;
 		ImVec2 point = io.MousePos;
 
+		ImGui::GetForegroundDrawList()->AddRectFilled(p1, p2, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
 
 		// Resize
 		const float margin = 4.0f;
@@ -171,14 +206,11 @@ namespace Amaterasu
 			ImVec2 minSize = ImVec2(1280, 720);
 			ImVec2 maxSize = ImVec2(1024*64, 1024 * 64);
 			ImVec2 newSize = ImClamp(originalWindowSize + (point - lastClickPosition), minSize, maxSize);
-			glfwSetWindowSize(GetWindow(), newSize.x, newSize.y);
+			//glfwSetWindowSize(GetWindow(), newSize.x, newSize.y);
+			
 		}
 
 		m_WorkspaceStack.Render();
-
-		// TODO: Disable in debug options.
-		ImGui::GetForegroundDrawList()->AddRectFilled(p1, p2, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
-
 	}
 
 	void Application::InitializeImGui()
@@ -250,4 +282,12 @@ namespace Amaterasu
 		colors[ImGuiCol_TabUnfocusedActive] = ImColor(36, 36, 36, 255);
 		colors[ImGuiCol_CheckMark] = ImColor(160, 160, 160, 255);
 	}
+
+#if defined(_WIN32)
+	LRESULT Application::CustomWindowProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
+	{
+
+	}
+#endif
+
 }
