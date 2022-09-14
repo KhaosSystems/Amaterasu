@@ -308,8 +308,8 @@ namespace Amaterasu
 				else
 				{
 					// Drag the menu bar to move the window
-					//if (!ImGui::IsAnyItemHovered() && (MousePos.y < (WindowRect.top + self->pTitleBar->Height())))
-						//return HTCAPTION;
+					if (/*!ImGui::IsAnyItemHovered() && */(MousePos.y < (WindowRect.top + 30.0f /*workspackStack->TabBarHiight*/)))
+						return HTCAPTION;
 				}
 			}
 
