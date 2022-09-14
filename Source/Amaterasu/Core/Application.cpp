@@ -272,8 +272,8 @@ namespace Amaterasu
 					// TODO: Improve.
 					// Drag the menu bar to move the window
 					if (MousePos.y < WindowRect.top + 30.0f &&
-						MousePos.x > WindowRect.left + 150.0f &&
-						MousePos.x < WindowRect.right - 150.0f)
+						MousePos.x > WindowRect.left + 155.0f &&
+						MousePos.x < WindowRect.right - 100.0f)
 						return HTCAPTION;
 				}
 			}
