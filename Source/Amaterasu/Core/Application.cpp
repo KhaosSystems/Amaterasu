@@ -46,6 +46,9 @@ namespace Amaterasu
 
 	}
 
+	static bool resize = false;
+
+
 	void Application::Run()
 	{
 		if (!glfwInit())
@@ -106,7 +109,8 @@ namespace Amaterasu
 
 		while (!glfwWindowShouldClose(m_Window))
 		{
-			Render();
+			if (!resize)
+				Render();
 
 			glfwPollEvents();
 		}
@@ -114,11 +118,12 @@ namespace Amaterasu
 		glfwTerminate();
 	}
 
-	static bool b_Rendering = false;
+
+	static int i;
 	void Application::Render()
 	{
-		if (b_Rendering) return;
-		b_Rendering = true;
+		i++;
+		assert(i == 1);
 
 		const ImVec4 Color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 
@@ -131,7 +136,6 @@ namespace Amaterasu
 		ImGui::NewFrame();
 		
 		ImGuiRender();
-		ImGui::EndFrame();
 
 		ImGui::Render();
 
@@ -148,48 +152,11 @@ namespace Amaterasu
 
 		glfwSwapBuffers(m_Window);
 	
-		b_Rendering = false;
+		i = 0;
 	}
 
 	void Application::ImGuiRender()
 	{
-		//ImGuiIO& io = ImGui::GetIO();
-
-		// TODO: Better window dragging.
-
-		/*int windowPosX, windowPosY, windowSizeX, windowSizeY = 0;
-		glfwGetWindowPos(GetWindow(), &windowPosX, &windowPosY);
-		glfwGetWindowSize(GetWindow(), &windowSizeX, &windowSizeY);
-		ImVec2 windowPos = ImVec2(windowPosX, windowPosY);
-		ImVec2 windowSize = ImVec2(windowSizeX, windowSizeY);
-		ImVec2 p1 = ImVec2(160.0f, 0.0f) + windowPos;
-		ImVec2 p2 = ImVec2(1170.0f, 30.0f) + windowPos;
-		ImVec2 point = io.MousePos;
-
-		//ImGui::GetForegroundDrawList()->AddRectFilled(p1, p2, ImColor(0.0f, 0.0f, 1.0f, 0.5f));
-
-
-		if (ImGui::IsMouseClicked(0))
-		{
-			lastClickPosition = point;
-
-			if (point.x >= p1.x && point.x <= p2.x && point.y >= p1.y && point.y <= p2.y)
-			{
-				windowMoveOffset = windowPos - point;
-				isDraggingWindow = true;
-			}
-		}
-
-		if (ImGui::IsMouseReleased(0))
-		{
-			isDraggingWindow = false;
-		}
-
-		if (isDraggingWindow)
-		{
-			glfwSetWindowPos(GetWindow(), point.x + windowMoveOffset.x, point.y + windowMoveOffset.y);
-		}*/
-
 		m_WorkspaceStack.Render();
 	}
 
@@ -263,6 +230,7 @@ namespace Amaterasu
 		colors[ImGuiCol_CheckMark] = ImColor(160, 160, 160, 255);
 	}
 
+
 #if defined(_WIN32)
 	LRESULT Application::CustomWindowProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
 	{
@@ -307,6 +275,7 @@ namespace Amaterasu
 				}
 				else
 				{
+					// TODO: Improve.
 					// Drag the menu bar to move the window
 					if (/*!ImGui::IsAnyItemHovered() && */(MousePos.y < (WindowRect.top + 30.0f /*workspackStack->TabBarHiight*/)))
 						return HTCAPTION;
@@ -345,30 +314,21 @@ namespace Amaterasu
 
 		case WM_ENTERSIZEMOVE:
 		{
-			SetTimer(Handle, 1, USER_TIMER_MINIMUM, NULL);
-
+			std::cout << "start" << std::endl;
+			resize = true;
 		} break;
 
 		case WM_EXITSIZEMOVE:
 		{
-			KillTimer(Handle, 1);
-
-		} break;
-
-		case WM_TIMER:
-		{
-			const UINT_PTR TimerID = (UINT_PTR)WParam;
-
-			if (TimerID == 1)
-			{
-				self->Render();
-			}
-
+			std::cout << "end" << std::endl;
+			resize = false;
 		} break;
 
 		case WM_SIZE:
 		case WM_MOVE:
 		{
+			std::cout << "R" << std::endl;
+
 			self->Render();
 
 		} break;
