@@ -30,12 +30,12 @@ namespace Amaterasu
 		size_t matches = 0;
 		for (int i = 0; i < std::size(m_Actions); i++)
 		{
-			if (filter.PassFilter(m_Actions[i].Name.c_str()))
+			if (filter.PassFilter(m_Actions[i].name.c_str()))
 			{
 				matches++;
-				if (ImGui::MenuItem(m_Actions[i].Name.c_str(), "CTRL+M"))
+				if (ImGui::MenuItem(m_Actions[i].name.c_str(), "CTRL+M"))
 				{
-					m_Actions[i].Function();
+					m_Actions[i].Execute();
 				}
 			}
 		}

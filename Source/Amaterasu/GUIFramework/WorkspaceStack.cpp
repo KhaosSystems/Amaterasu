@@ -63,11 +63,15 @@ namespace Amaterasu
 
 				ImGui::SetCursorPos(ImVec2(cursorPosWithWindowPadding.x, rectSize.y + 6.0f));
 
-				if (ImGui::MenuItem("Open Folder", "Ctrl+Shift+O"))
+				for (const IWorkspace* workspace : m_Workspaces)
 				{
-					fileWindowOpen = false;
-
-					std::string filepath = FileDialogs::OpenFile("Any File");
+					for (const Action* action : workspace->GetActions())
+					{
+						if (ImGui::MenuItem(action->name.c_str(), "TODO"))
+						{
+							action->Execute();
+						}
+					}
 				}
 
 				if (ImGui::MenuItem("Show Demo Window"))

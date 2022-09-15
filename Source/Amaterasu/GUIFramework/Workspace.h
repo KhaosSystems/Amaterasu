@@ -19,6 +19,8 @@ namespace Amaterasu
 	{
 	public:
 		virtual void Render() = 0;
+
+		virtual const std::vector<Action*>& GetActions() const = 0;
 	};
 
 	template<typename WorkspaceType>
@@ -85,6 +87,11 @@ namespace Amaterasu
 
 			style = oldStyle;
 		}
+		
+		virtual const std::vector<Action*>& GetActions() const override
+		{
+			return actions;
+		};
 
 	protected:
 		const std::string m_Name;
@@ -93,6 +100,8 @@ namespace Amaterasu
 
 		ActionSearchTool m_ActionSearchTool;
 		bool m_ShowActionSearchTool;
+
+		std::vector<Action*> actions;
 
 		std::vector<std::unique_ptr<ITool>> m_Tools;
 	};

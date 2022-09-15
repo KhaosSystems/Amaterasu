@@ -7,10 +7,16 @@ namespace Amaterasu
 {
 	struct Action
 	{
-		Action(const std::string& name, void(*function)()) : Name(name), Function(function) {}
+		Action(const std::string& name, void(*function)(void*), void* data) : name(name), function(function), data(data) {}
 
-		std::string Name;
-		void(*Function)();
+		void Execute() const
+		{
+			function(data);
+		}
+
+		std::string name;
+		void(*function)(void*);
+		void* data;
 	};
 
 	class ActionSearchTool
