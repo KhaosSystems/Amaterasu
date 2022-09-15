@@ -65,9 +65,9 @@ namespace Amaterasu
 
 				if (ImGui::MenuItem("Open Folder", "Ctrl+Shift+O"))
 				{
-					std::string filepath = FileDialogs::OpenFile("Any File");
-
 					fileWindowOpen = false;
+
+					std::string filepath = FileDialogs::OpenFile("Any File");
 				}
 
 				if (ImGui::MenuItem("Show Demo Window"))
