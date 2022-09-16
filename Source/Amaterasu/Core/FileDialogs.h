@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Filesystem/Path.h"
+
 #include <string>
 
 namespace Amaterasu
