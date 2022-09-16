@@ -11,7 +11,7 @@ namespace Amaterasu
 {
 	namespace FileDialogs
 	{
-		std::string OpenFile(const char* filter)
+		std::string OpenFileDialog(const char* filter)
 		{
 			OPENFILENAMEA ofn;
 			CHAR szFile[260] = { 0 };
@@ -33,7 +33,7 @@ namespace Amaterasu
 		}
 
 
-		std::string SaveFile(const char* filter)
+		std::string SaveFileDialog(const char* filter)
 		{
 			OPENFILENAMEA ofn;
 			CHAR szFile[260] = { 0 };
@@ -56,8 +56,8 @@ namespace Amaterasu
 				return ofn.lpstrFile;
 			return std::string();
 		}
-
-		std::string OpenFolder(const char* filter)
+		
+		std::string OpenDirectoryDialog(const void* windowHandle, const char* )
 		{
 			bool success = false;
 			

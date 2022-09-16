@@ -6,8 +6,13 @@ namespace Amaterasu
 {
     namespace FileDialogs
     {
-    	std::string OpenFile(const char* filter);
-	    std::string SaveFile(const char* filter);
-        std::string OpenFolder(const char* filter);
+        enum EFileDialogFlags
+        {
+
+        };
+
+    	std::string OpenFileDialog(const char* filter);
+	    std::string SaveFileDialog(const char* filter);
+        bool OpenDirectoryDialog(const void* windowHandle);
     }
 }
