@@ -21,6 +21,7 @@ namespace Amaterasu
 		virtual void Render() = 0;
 
 		virtual const std::vector<Action*>& GetActions() const = 0;
+		virtual const std::vector<ITool*>& GetTools() const = 0;
 	};
 
 	template<typename WorkspaceType>
@@ -41,10 +42,10 @@ namespace Amaterasu
 			// WARN: It's 03:54... This code is pretty dangerous, better check it when I an not sleep deprived...
 			static_assert(std::is_base_of<ITool, ToolType>::value);
 
-			std::unique_ptr<ToolType> newTool = std::make_unique<ToolType>();
+			ToolType* newTool = new ToolType();
 			assert(newTool->GetWorkspaceTypeInfo() == typeid(WorkspaceType));
 			newTool->Initialize(static_cast<WorkspaceType*>(this));
-			m_Tools.push_back(std::unique_ptr<ITool>{static_cast<ITool*>(newTool.release())});
+			m_Tools.push_back(static_cast<ITool*>(newTool));
 		}
 
 		virtual void Render() override
@@ -73,7 +74,7 @@ namespace Amaterasu
 			ImGui::DockSpace(ImGui::GetID(windowName.c_str()), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None, &m_ToolWindowClass);
 			ImGui::PopStyleVar(1);
 
-			for (std::unique_ptr<ITool>& tool : m_Tools)
+			for (ITool* tool : m_Tools)
 			{
 				tool->BeginRender();
 				tool->Render();
@@ -93,6 +94,11 @@ namespace Amaterasu
 			return actions;
 		};
 
+		virtual const std::vector<ITool*>& GetTools() const override
+		{
+			return m_Tools;
+		}
+
 	protected:
 		const std::string m_Name;
 		const std::string m_DisplayName;
@@ -103,7 +109,7 @@ namespace Amaterasu
 
 		std::vector<Action*> actions;
 
-		std::vector<std::unique_ptr<ITool>> m_Tools;
+		std::vector<ITool*> m_Tools;
 	};
 
 }

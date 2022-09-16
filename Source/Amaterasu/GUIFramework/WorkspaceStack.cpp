@@ -72,6 +72,11 @@ namespace Amaterasu
 							action->Execute();
 						}
 					}
+
+					for (const ITool* tool : workspace->GetTools())
+					{
+
+					}
 				}
 
 				if (ImGui::MenuItem("Show Demo Window"))
