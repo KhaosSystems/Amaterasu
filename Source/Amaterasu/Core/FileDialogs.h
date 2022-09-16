@@ -16,6 +16,6 @@ namespace Amaterasu
 
     	std::string OpenFileDialog(const char* filter);
 	    std::string SaveFileDialog(const char* filter);
-        bool OpenDirectoryDialog(const void* windowHandle, const std::string& dialogTitle, const std::filesystem::path& defaultPath, std::filesystem::path& directoryPath);
+        bool OpenDirectoryDialog(const void* windowHandle, const std::wstring& dialogTitle, const std::filesystem::path& defaultPath, std::filesystem::path& directoryPath);
     }
 }

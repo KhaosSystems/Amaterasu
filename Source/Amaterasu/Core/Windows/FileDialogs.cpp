@@ -57,7 +57,7 @@ namespace Amaterasu
 			return std::string();
 		}
 		
-		bool OpenDirectoryDialog(const void* windowHandle, const std::string& dialogTitle, const std::filesystem::path& defaultPath, std::filesystem::path& directoryPath)
+		bool OpenDirectoryDialog(const void* windowHandle, const std::wstring& dialogTitle, const std::filesystem::path& defaultPath, std::filesystem::path& directoryPath)
 		{
 			bool success = false;
 
@@ -72,7 +72,7 @@ namespace Amaterasu
 				}
 
 				// Set up common settings
-				fileDialog->SetTitle(*dialogTitle);
+				fileDialog->SetTitle(dialogTitle.c_str());
 				if (std::filesystem::exists(defaultPath))
 				{
 					// SHCreateItemFromParsingName requires the given path be absolute and use \ rather than / as our normalized paths do
@@ -80,7 +80,7 @@ namespace Amaterasu
 					defaultWindowsPath.make_preferred();
 
 					IShellItem* DefaultPathItem;
-					if (SUCCEEDED(::SHCreateItemFromParsingName(*defaultWindowsPath.wstring(), nullptr, IID_PPV_ARGS(&DefaultPathItem))))
+					if (SUCCEEDED(::SHCreateItemFromParsingName(defaultWindowsPath.c_str(), nullptr, IID_PPV_ARGS(&DefaultPathItem))))
 					{
 						fileDialog->SetFolder(DefaultPathItem);
 					}
