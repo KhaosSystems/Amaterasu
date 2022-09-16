@@ -76,18 +76,18 @@ namespace Amaterasu
 				if (std::filesystem::exists(defaultPath))
 				{
 					// SHCreateItemFromParsingName requires the given path be absolute and use \ rather than / as our normalized paths do
-					std::wstring defaultWindowsPath = FPaths::ConvertRelativePathToFull(DefaultPath);
-					DefaultWindowsPath.ReplaceInline(TEXT("/"), TEXT("\\"), ESearchCase::CaseSensitive);
+					std::filesystem::path defaultWindowsPath = std::filesystem::absolute(defaultPath);
+					defaultWindowsPath.make_preferred();
 
-					TComPtr<IShellItem> DefaultPathItem;
-					if (SUCCEEDED(::SHCreateItemFromParsingName(*DefaultWindowsPath, nullptr, IID_PPV_ARGS(&DefaultPathItem))))
+					IShellItem* DefaultPathItem;
+					if (SUCCEEDED(::SHCreateItemFromParsingName(*defaultWindowsPath.wstring(), nullptr, IID_PPV_ARGS(&DefaultPathItem))))
 					{
 						fileDialog->SetFolder(DefaultPathItem);
 					}
 				}
 
 				// Show the picker
-				if (SUCCEEDED(fileDialog->Show((HWND)parentWindowHandle)))
+				if (SUCCEEDED(fileDialog->Show((HWND)windowHandle)))
 				{
 					IShellItem* result;
 					if (SUCCEEDED(fileDialog->GetResult(&result)))
