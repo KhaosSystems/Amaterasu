@@ -20,6 +20,7 @@ namespace Amaterasu
         virtual void Render() = 0;
         virtual void EndRender() = 0;
         virtual const std::type_info& GetWorkspaceTypeInfo() const = 0;
+        virtual const std::vector<Action*>& GetActions() const = 0;
     };
 
     template<typename WorkspaceType, typename ToolType>
@@ -67,6 +68,11 @@ namespace Amaterasu
         }
 
         virtual const std::type_info& GetWorkspaceTypeInfo() const override { return typeid(WorkspaceType); }
+
+        virtual const std::vector<Action*>& GetActions() const override
+        {
+            return actions;
+        };
 
     protected:
         WorkspaceType* m_Workspace = nullptr;

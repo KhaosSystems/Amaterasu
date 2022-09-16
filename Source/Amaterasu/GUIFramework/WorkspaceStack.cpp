@@ -75,7 +75,13 @@ namespace Amaterasu
 
 					for (const ITool* tool : workspace->GetTools())
 					{
-
+						for (const Action* action : tool->GetActions())
+						{
+							if (ImGui::MenuItem(action->name.c_str(), "TODO"))
+							{
+								action->Execute();
+							}
+						}
 					}
 				}
 
