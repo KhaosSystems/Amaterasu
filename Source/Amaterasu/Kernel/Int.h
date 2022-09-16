@@ -1,4 +1,3 @@
-#include <stdint.h>
 namespace Kernel
 {
     typedef signed char        Int8;
