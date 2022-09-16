@@ -57,15 +57,11 @@ namespace Amaterasu
 			return std::string();
 		}
 		
-		std::string OpenDirectoryDialog(const void* windowHandle, const char* )
+		bool OpenDirectoryDialog(const void* windowHandle, const std::string& dialogTitle, const std::filesystem::path& defaultPath, std::filesystem::path& directoryPath)
 		{
 			bool success = false;
-			
-			std::wstring folderName;
 
-			std::wstring dialogTitle = L"Testing123";
-
-			IFileOpenDialog* fileDialog; // Unreal has a TComPtr<T> for this...  Why?
+			IFileOpenDialog* fileDialog;
 			if (SUCCEEDED(::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog))))
 			{
 				// Set this up as a folder picker
@@ -76,41 +72,41 @@ namespace Amaterasu
 				}
 
 				// Set up common settings
-				fileDialog->SetTitle(dialogTitle.c_str());
-				/*if (!DefaultPath.IsEmpty())
+				fileDialog->SetTitle(*dialogTitle);
+				if (std::filesystem::exists(defaultPath))
 				{
 					// SHCreateItemFromParsingName requires the given path be absolute and use \ rather than / as our normalized paths do
-					FString DefaultWindowsPath = FPaths::ConvertRelativePathToFull(DefaultPath);
+					std::wstring defaultWindowsPath = FPaths::ConvertRelativePathToFull(DefaultPath);
 					DefaultWindowsPath.ReplaceInline(TEXT("/"), TEXT("\\"), ESearchCase::CaseSensitive);
 
 					TComPtr<IShellItem> DefaultPathItem;
 					if (SUCCEEDED(::SHCreateItemFromParsingName(*DefaultWindowsPath, nullptr, IID_PPV_ARGS(&DefaultPathItem))))
 					{
-						FileDialog->SetFolder(DefaultPathItem);
+						fileDialog->SetFolder(DefaultPathItem);
 					}
-				}*/
+				}
 
 				// Show the picker
-				if (SUCCEEDED(fileDialog->Show(NULL/*(HWND)ParentWindowHandle*/)))
+				if (SUCCEEDED(fileDialog->Show((HWND)parentWindowHandle)))
 				{
-					IShellItem* result; // Unreal uses TComPtr<IShellItem> here.
+					IShellItem* result;
 					if (SUCCEEDED(fileDialog->GetResult(&result)))
 					{
-						PWSTR pFilePath = nullptr;
-						if (SUCCEEDED(result->GetDisplayName(SIGDN_FILESYSPATH, &pFilePath)))
+						PWSTR filePath = nullptr;
+						if (SUCCEEDED(result->GetDisplayName(SIGDN_FILESYSPATH, &filePath)))
 						{
 							success = true;
 
-							folderName = pFilePath;
-							// TODO: Normalize directory name
-							
-							::CoTaskMemFree(pFilePath);
+							/// TODO
+							directoryPath = filePath;
+
+							::CoTaskMemFree(filePath);
 						}
 					}
 				}
 			}
 
-			return "test";
+			return success;
 		}
 	}
 }
