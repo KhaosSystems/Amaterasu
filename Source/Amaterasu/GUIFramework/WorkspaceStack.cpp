@@ -70,6 +70,7 @@ namespace Amaterasu
 						if (ImGui::MenuItem(action->name.c_str(), "TODO"))
 						{
 							action->Execute();
+							fileWindowOpen = false;
 						}
 					}
 
@@ -80,6 +81,7 @@ namespace Amaterasu
 							if (ImGui::MenuItem(action->name.c_str(), "TODO"))
 							{
 								action->Execute();
+								fileWindowOpen = false;
 							}
 						}
 					}
