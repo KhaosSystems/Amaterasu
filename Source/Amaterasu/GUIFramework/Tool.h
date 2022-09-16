@@ -4,6 +4,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#include "Amaterasu/ActionSearchTool.h"
+
 #include <concepts>
 #include <string>
 #include <typeinfo>
@@ -71,6 +73,8 @@ namespace Amaterasu
         const std::string m_Name;
         const std::string m_DisplayName;
         const std::string m_WorkspaceTypeName;
+
+        std::vector<Action*> actions;
 
         // TMP
         ImGuiStyle m_OldStyle;
